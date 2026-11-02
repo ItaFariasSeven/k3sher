@@ -1,0 +1,83 @@
+# === Python & Django Caches ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# === Environment & Secrets ===
+.env
+.env.*
+!.env.example
+!.env.template
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv
+
+# === Database ===
+*.sqlite3
+*.sqlite3-journal
+*.db
+*.db-journal
+
+# === Django Media & Static Files ===
+# Arquivos enviados por usuários e coletados via collectstatic
+media/
+staticfiles/
+static_root/
+
+# === Logs ===
+*.log
+logs/
+celerybeat-schedule
+celerybeat.pid
+
+# === Testing & Coverage ===
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+htmlcov/
+
+# === IDEs & Editors ===
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# PyCharm / JetBrains
+.idea/
+
+# Editors diversos
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

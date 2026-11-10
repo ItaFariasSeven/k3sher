@@ -2,7 +2,6 @@ from rest_framework import generics, permissions
 from .models import Alarm
 from .serializers import AlarmSerializer
 
-# Create your views here.
 
 class AlarmListCreateView(generics.ListCreateAPIView):
     serializer_class = AlarmSerializer
@@ -20,4 +19,5 @@ class AlarmDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        # Impede que um usuário consulte ou altere alarmes de outra conta.
         return Alarm.objects.filter(user=self.request.user)

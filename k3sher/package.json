@@ -5,23 +5,32 @@
   "main": "index.js",
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
-    "@react-native-async-storage/async-storage": "^3.1.1",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-community/datetimepicker": "9.2.1",
     "@react-navigation/bottom-tabs": "^7.21.0",
     "@react-navigation/native": "^7.5.1",
     "@react-navigation/stack": "^7.12.1",
     "axios": "^1.21.0",
-    "expo": "~58.0.21",
+    "expo": "~58.0.23",
+    "expo-audio": "~58.0.11",
+    "expo-av": "^16.0.8",
     "expo-clipboard": "~58.0.4",
+    "expo-document-picker": "~58.0.4",
+    "expo-file-system": "~58.0.13",
+    "expo-image-picker": "~58.0.10",
+    "expo-keep-awake": "~58.0.3",
+    "expo-notifications": "~58.1.8",
     "expo-status-bar": "~58.0.4",
+    "express": "^5.3.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-native": "0.88.1",
     "react-native-gesture-handler": "~3.3.0",
-    "react-native-safe-area-context": "~5.10.1",
+    "react-native-safe-area-context": "~5.11.1",
     "react-native-screens": "~4.30.0",
     "react-native-web": "^0.21.4",
-    "expo-notifications": "~58.1.7",
-    "@react-native-community/datetimepicker": "9.2.1"
+    "socket.io": "^4.8.4",
+    "socket.io-client": "^4.8.4"
   },
   "scripts": {
     "start": "expo start",
@@ -29,5 +38,10 @@
     "ios": "expo start --ios",
     "web": "expo start --web"
   },
-  "private": true
+  "private": true,
+  "description": "Este pacote substitui a implementação inicial das telas e serviços de alarme. Ele foi escrito para a estrutura de pastas apresentada no projeto e mantém a rota `Alarms` dentro do `NavBar`.",
+  "devDependencies": {},
+  "keywords": [],
+  "author": "",
+  "type": "commonjs"
 }

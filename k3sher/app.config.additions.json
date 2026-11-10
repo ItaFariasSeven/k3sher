@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "plugins": [
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": true,
+          "enableBackgroundRecording": false
+        }
+      ],
+      "expo-notifications"
+    ],
+    "android": {
+      "permissions": [
+        "SCHEDULE_EXACT_ALARM",
+        "VIBRATE"
+      ]
+    }
+  }
+}

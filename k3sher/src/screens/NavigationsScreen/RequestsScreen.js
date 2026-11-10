@@ -1,27 +1,44 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, RefreshControl, ActivityIndicator } from 'react-native';
+// ============================================================
+// src/screens/RequestsScreen.js
+// ============================================================
+import React, { useState, useCallback } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  RefreshControl,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 
 import PrayerAnsweredModal from '../../components/Modal/PrayerAnsweredModal';
 import { Colors } from '../../constants/colors';
 import { getPrayerRequests, thankPrayerRequest } from '../../services/prayers';
 
-function formatTime(isoString) {
-  if (!isoString) return '';
-  const date = new Date(isoString);
-  return date.toLocaleTimeString('pt-BR', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-  });
+function formatTime(timeString) {
+  if (!timeString) return '';
+  const [hours, minutes] = timeString.split(':');
+  const h = parseInt(hours, 10);
+  const ampm = h >= 12 ? 'pm' : 'am';
+  const displayH = h % 12 || 12;
+  return `${displayH}:${minutes} ${ampm}`;
 }
 
 function PedidoItem({ item, onAnswer }) {
   return (
     <View style={styles.item}>
+      <View style={styles.avatar}>
+        <Ionicons name="person" size={18} color={Colors.white} />
+      </View>
+
       <View style={styles.content}>
-        <Text style={styles.name}>{item.name}</Text>
+        <Text style={styles.name}>{item.title}</Text>
         <Text style={styles.description} numberOfLines={2}>
           {item.description}
         </Text>
@@ -32,9 +49,9 @@ function PedidoItem({ item, onAnswer }) {
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={() => onAnswer(item)}
-          style={styles.checkbox}
+          style={[styles.checkbox, item.is_answered && styles.checkboxActive]}
         >
-          {item.thanked && (
+          {item.is_answered && (
             <Ionicons name="checkmark" size={18} color={Colors.white} />
           )}
         </TouchableOpacity>
@@ -53,18 +70,23 @@ export default function RequestsScreen({ navigation }) {
   async function loadData() {
     try {
       const data = await getPrayerRequests();
-      setPedidos(data.results || data);
+      const results = data.results || data;
+
+      // Filtra para mostrar APENAS os pedidos que ainda NÃO foram respondidos
+      setPedidos(results.filter((p) => !p.is_answered));
     } catch (error) {
-      console.error(error);
+      console.log("Erro ao carregar pedidos:", error.response?.data || error.message);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [])
+  );
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -80,11 +102,20 @@ export default function RequestsScreen({ navigation }) {
     if (!selected) return;
 
     try {
+      // 1. Faz a requisição pro backend confirmar o agradecimento
       await thankPrayerRequest(selected.id);
 
+      // 2. Remove da lista atual imediatamente na UI
       setPedidos((prev) => prev.filter((p) => p.id !== selected.id));
+
+      // 3. Fecha o modal
       setModalVisible(false);
       setSelected(null);
+
+      // 4. Aguarda a animação do modal fechar antes de navegar
+      setTimeout(() => {
+        navigation.navigate('Thanks');
+      }, 200);
     } catch (error) {
       const msg =
         error.response?.data?.detail ||
@@ -206,6 +237,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.textMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
   content: {
     flex: 1,
     paddingRight: 12,
@@ -238,5 +278,9 @@ const styles = StyleSheet.create({
     borderColor: '#D6D3D1',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  checkboxActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
 });

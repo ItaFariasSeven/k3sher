@@ -1,139 +1,100 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, FlatList, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
-import { getMessages } from '../../services/messages';
-import { Colors } from '../../constants/colors';
 
-function MessageCard({ item }) {
-  const handleCopy = async () => {
-    await Clipboard.setStringAsync(item.body);
-    Alert.alert('Copiado!', 'A mensagem foi copiada para a área de transferência.');
+// Importações dos dados e subcomponentes
+import { CATEGORIES, PREDEFINED_MESSAGES } from '../../data/messages';
+import FilterPills from '../../components/FilterPills';
+import MessageCard from '../../components/MessageCard';
+
+export default function MessagesScreen() {
+  const [selectedFilter, setSelectedFilter] = useState('Todos');
+
+  // useMemo garante que a lista só será recalculada quando o filtro mudar.
+  // Excelente para performance quando se tem centenas de itens.
+  const filteredMessages = useMemo(() => {
+    if (selectedFilter === 'Todos') return PREDEFINED_MESSAGES;
+    return PREDEFINED_MESSAGES.filter((m) => m.category === selectedFilter);
+  }, [selectedFilter]);
+
+  const copyToClipboard = async (text) => {
+    await Clipboard.setStringAsync(text);
+    Alert.alert('Copiado!', 'Mensagem copiada para a área de transferência.', [
+      { text: 'OK', style: 'cancel' },
+    ]);
   };
 
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>{item.title}</Text>
-      <Text style={styles.cardBody} numberOfLines={5}>
-        {item.body}
-      </Text>
-      <TouchableOpacity style={styles.copyButton} onPress={handleCopy}>
-        <Ionicons name="copy-outline" size={18} color={Colors.white} />
-        <Text style={styles.copyText}>Copiar</Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
-
-export default function MessagesScreen() {
-  const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadMessages() {
-      try {
-        const data = await getMessages();
-        setMessages(data.results || data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadMessages();
-  }, []);
-
-  if (loading) {
-    return (
-      <SafeAreaView style={[styles.safe, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </SafeAreaView>
-    );
-  }
-
-  return (
     <SafeAreaView style={styles.safe}>
+      {/* Cabeçalho */}
       <View style={styles.header}>
-        <Text style={styles.title}>Mensagens</Text>
+        <Text style={styles.headerTitle}>Mensagens prontas</Text>
       </View>
 
-      <ScrollView
-        style={styles.list}
-        contentContainerStyle={styles.listContent}
+      {/* Componente de Filtros isolado */}
+      <FilterPills
+        categories={CATEGORIES}
+        selected={selectedFilter}
+        onSelect={setSelectedFilter}
+      />
+
+      {/* Lista de Mensagens Componentizada */}
+      <FlatList
+        data={filteredMessages}
+        keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
-      >
-        {messages.map((item) => (
-          <MessageCard key={item.id} item={item} />
-        ))}
-      </ScrollView>
+        contentContainerStyle={styles.listContent}
+        initialNumToRender={10} // Otimização para listas grandes
+        maxToRenderPerBatch={10} // Otimização para listas grandes
+        renderItem={({ item }) => (
+          <MessageCard 
+            category={item.category} 
+            text={item.text} 
+            onCopy={copyToClipboard} 
+          />
+        )}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              Nenhuma mensagem encontrada para este filtro.
+            </Text>
+          </View>
+        }
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { 
-    flex: 1, 
-    backgroundColor: Colors.background 
+  safe: {
+    flex: 1,
+    backgroundColor: '#FAFAFA',
   },
-  header: { 
-    alignItems: 'center', 
-    paddingTop: 16, 
-    paddingBottom: 8 
+  header: {
+    backgroundColor: '#F5F3FF',
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
-  title: { 
-    fontSize: 18, 
-    fontWeight: '700', 
-    color: Colors.text 
-  },
-  list: { 
-    flex: 1 
+  headerTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#262626',
+    fontFamily: 'Inter',
   },
   listContent: {
-    paddingHorizontal: 16, 
-    paddingBottom: 24 
-  },
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
     padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    gap: 16,
   },
-  cardTitle: { 
-    fontSize: 16, 
-    fontWeight: '700', 
-    color: Colors.text, 
-    marginBottom: 8 
-  },
-  cardBody: { 
-    fontSize: 14, 
-    color: Colors.textSecondary, 
-    lineHeight: 20, 
-    marginBottom: 12,
-  },
-  copyButton: {
-    flexDirection: 'row',
+  emptyContainer: {
+    paddingTop: 40,
     alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: Colors.primary,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    gap: 8,
   },
-  copyText: { 
-    color: Colors.white, 
-    fontWeight: '600', 
-    fontSize: 14 
+  emptyText: {
+    fontSize: 14,
+    color: '#9CA3AF',
   },
 });

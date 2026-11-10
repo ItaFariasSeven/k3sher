@@ -16,7 +16,7 @@ export default function PrayerAnsweredModal({ visible, prayer, onClose, onThank 
       <Pressable style={styles.overlay} onPress={onClose}>
         <View style={styles.card}>
           <Text style={styles.title}>
-            O pedido de {prayer.name} foi atendido?
+            O pedido de {prayer.title} foi atendido?
           </Text>
 
           <Text style={styles.description} numberOfLines={3}>

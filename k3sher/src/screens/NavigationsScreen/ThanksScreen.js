@@ -1,28 +1,41 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, RefreshControl, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useEffect, useState, useCallback  } from 'react';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { getThanksPrayers } from '../../services/prayers';
 import { Colors } from '../../constants/colors';
+import { getThanksPrayers } from '../../services/prayers';
+import { useFocusEffect } from '@react-navigation/native';
 
-function ThanksItem({ item }) {
+  function formatDate(dateString) {
+    if (!dateString) return 'data não registrada';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+
+function ThanksgivingItem({ item }) {
   return (
     <View style={styles.item}>
       <View style={styles.content}>
-        <Text style={styles.name}>{item.name}</Text>
+        <Text style={styles.name}>{item.title}</Text>
         <Text style={styles.description} numberOfLines={2}>
           {item.description}
+        </Text>
+        <Text style={styles.dateText}>
+          Deus respondeu em: {formatDate(item.answered_at)}
         </Text>
       </View>
     </View>
   );
 }
 
+
 export default function ThanksScreen() {
   const [thanks, setThanks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
 
   async function loadData() {
     try {
@@ -32,18 +45,14 @@ export default function ThanksScreen() {
       console.error(error);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   }
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    loadData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [])
+  );
 
   if (loading) {
     return (
@@ -59,22 +68,10 @@ export default function ThanksScreen() {
         <Text style={styles.title}>Agradecimentos</Text>
       </View>
 
-      <View style={styles.searchWrapper}>
-        <Ionicons name="search" size={18} color={Colors.textMuted} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search"
-          placeholderTextColor={Colors.textMuted}
-        />
-      </View>
-
       <ScrollView
         style={styles.list}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
       >
         {thanks.length === 0 ? (
           <View style={styles.empty}>
@@ -83,7 +80,9 @@ export default function ThanksScreen() {
             </Text>
           </View>
         ) : (
-          thanks.map((item) => <ThanksItem key={item.id} item={item} />)
+          thanks.map((item) => (
+            <ThanksgivingItem key={item.id} item={item} />
+          ))
         )}
       </ScrollView>
     </SafeAreaView>
@@ -101,28 +100,12 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    paddingTop: 26,
+    paddingTop: 16,
     paddingBottom: 8,
   },
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: Colors.text,
-  },
-  searchWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F1F5F9',
-    marginHorizontal: 24,
-    marginVertical: 12,
-    paddingHorizontal: 16,
-    height: 44,
-    borderRadius: 24,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: 12,
-    fontSize: 14,
     color: Colors.text,
   },
   list: {
@@ -133,15 +116,13 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   item: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
   content: {
-    flex: 1,
+    gap: 4,
   },
   name: {
     fontSize: 12,
@@ -165,5 +146,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textSecondary,
     textAlign: 'center',
+  },
+  dateText: {
+    fontSize: 11,
+    color: Colors.primary,
+    marginTop: 4,
+    fontWeight: '500',
   },
 });

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback  } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, RefreshControl, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 import { Colors } from '../../constants/colors';
 import { getThanksPrayers } from '../../services/prayers';
@@ -36,6 +37,7 @@ function ThanksgivingItem({ item }) {
 export default function ThanksScreen() {
   const [thanks, setThanks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   async function loadData() {
     try {
@@ -45,6 +47,7 @@ export default function ThanksScreen() {
       console.error(error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }
 
@@ -53,6 +56,11 @@ export default function ThanksScreen() {
       loadData();
     }, [])
   );
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadData();
+  }, []);
 
   if (loading) {
     return (
@@ -67,6 +75,15 @@ export default function ThanksScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Agradecimentos</Text>
       </View>
+
+      {/* <View style={styles.searchWrapper}>
+        <Ionicons name="search" size={18} color={Colors.textMuted} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search"
+          placeholderTextColor={Colors.textMuted}
+        />
+      </View> */}
 
       <ScrollView
         style={styles.list}
@@ -100,7 +117,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    paddingTop: 16,
+    paddingTop: 40,
     paddingBottom: 8,
   },
   title: {

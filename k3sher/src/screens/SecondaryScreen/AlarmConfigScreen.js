@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Switch, ScrollView, Alert, ActivityIndicator, } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Switch, ScrollView, Alert, ActivityIndicator, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
 import { createAlarm, updateAlarm } from '../../services/alarmService';
-import TimePicker from '../TimePicker';
+import TimePicker from '../../components/TimePicker';
 
 const WEEK_DAYS = [
   { label: 'D', full: 'Dom' },
@@ -247,6 +247,31 @@ export default function AlarmConfigScreen({ route, navigation }) {
     }
   }
 
+  function handleDelete() {
+    Alert.alert(
+      'Excluir alarme',
+      'Tem certeza que deseja excluir este alarme?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setSaving(true);
+              await deleteAlarm(alarm.id);
+              returnToAlarmList();
+            } catch (error) {
+              console.error('[AlarmConfigScreen] Erro ao excluir:', error);
+              Alert.alert('Erro', 'Não foi possível excluir o alarme.');
+              setSaving(false);
+            }
+          },
+        },
+      ]
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
@@ -284,11 +309,6 @@ export default function AlarmConfigScreen({ route, navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/*
-        Um único ScrollView envolve o relógio e todas as configurações.
-        Assim, o conteúdo inteiro tem uma área de rolagem limitada pela tela,
-        inclusive em aparelhos menores e quando o teclado é exibido.
-      */}
       <ScrollView
         style={styles.bodyScroll}
         contentContainerStyle={styles.bodyContent}
@@ -419,6 +439,19 @@ export default function AlarmConfigScreen({ route, navigation }) {
                 O alarme é salvo no aparelho e sincronizado com sua conta quando o servidor está disponível.
                 Mantenha as permissões de notificações habilitadas.
               </Text>
+
+              {/* Botão de deletar alarme */}
+              {isEdit && (
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={handleDelete}
+                  disabled={saving}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="trash-outline" size={20} color="#EF4444" />
+                  <Text style={styles.deleteButtonText}>Excluir alarme</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>
@@ -432,38 +465,92 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 0,
     backgroundColor: '#F5F7FA',
+    ...Platform.select({ web: { maxHeight: '100vh' } }),
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 8,
+    paddingTop: 40,
     minHeight: 54,
   },
-  headerButton: { width: 48, height: 40, alignItems: 'flex-start', justifyContent: 'center' },
-  headerTime: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
-  headerTimeText: { fontSize: 21, fontWeight: '600', color: Colors.text, fontFamily: 'DM Sans' },
-  headerPeriod: { fontSize: 11, color: Colors.textSecondary, fontFamily: 'DM Sans' },
-  doneButton: { minWidth: 48, minHeight: 40, alignItems: 'flex-end', justifyContent: 'center' },
-  doneText: { color: Colors.primary, fontSize: 16, fontWeight: '600', fontFamily: 'DM Sans' },
+  headerButton: { 
+    width: 48, 
+    height: 40, 
+    alignItems: 'flex-start', 
+    justifyContent: 'center' 
+  },
+  headerTime: { 
+    flexDirection: 'row', 
+    alignItems: 'baseline', 
+    gap: 6 
+  },
+  headerTimeText: { 
+    fontSize: 21, 
+    fontWeight: '600', 
+    color: Colors.text, fontFamily: 'DM Sans' 
+  },
+  headerPeriod: { 
+    fontSize: 11, 
+    color: Colors.textSecondary, 
+    fontFamily: 'DM Sans',
+  },
+  doneButton: { 
+    minWidth: 48, 
+    minHeight: 40, 
+    alignItems: 'flex-end', 
+    justifyContent: 'center' 
+  },
+  doneText: { 
+    color: Colors.primary, 
+    fontSize: 16, 
+    fontWeight: '600', 
+    fontFamily: 'DM Sans' 
+  },
   bodyScroll: {
     flex: 1,
     minHeight: 0,
   },
-  bodyContent: { flexGrow: 1, paddingBottom: 28 },
-  pickerWrapper: { alignItems: 'center', paddingTop: 5, paddingBottom: 17, paddingHorizontal: 12 },
+  bodyContent: { 
+    flexGrow: 1, 
+    paddingBottom: 28 
+  },
+  pickerWrapper: { 
+    alignItems: 'center', 
+    paddingTop: 5, 
+    paddingBottom: 17, 
+    paddingHorizontal: 12 
+  },
   sheet: {
     width: '100%',
     backgroundColor: Colors.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
   },
-  sheetContent: { paddingHorizontal: 23, paddingTop: 20, paddingBottom: 35 },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 18 },
-  sectionTitle: { fontSize: 16, fontWeight: '600', color: Colors.text, fontFamily: 'DM Sans' },
-  inputLabel: { fontSize: 12, color: Colors.textSecondary, marginBottom: 7, fontFamily: 'DM Sans' },
+  sheetContent: { 
+    paddingHorizontal: 23, 
+    paddingTop: 20, 
+    paddingBottom: 35 
+  },
+  sectionHeader: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 9, 
+    marginBottom: 18 
+  },
+  sectionTitle: { 
+    fontSize: 16, 
+    fontWeight: '600', 
+    color: Colors.text, 
+    fontFamily: 'DM Sans' 
+  },
+  inputLabel: { 
+    fontSize: 12, 
+    color: Colors.textSecondary, 
+    marginBottom: 7, 
+    fontFamily: 'DM Sans' 
+  },
   labelInput: {
     borderWidth: 1,
     borderColor: Colors.border,
@@ -475,9 +562,23 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontFamily: 'DM Sans',
   },
-  settingGroup: { paddingBottom: 17, borderBottomWidth: 0.6, borderBottomColor: Colors.border },
-  settingGroupTitle: { fontSize: 14, fontWeight: '600', color: Colors.text, marginBottom: 13, fontFamily: 'DM Sans' },
-  daysContainer: { flexDirection: 'row', justifyContent: 'space-between', gap: 5 },
+  settingGroup: { 
+    paddingBottom: 17, 
+    borderBottomWidth: 0.6, 
+    borderBottomColor: Colors.border 
+  },
+  settingGroupTitle: { 
+    fontSize: 14, 
+    fontWeight: '600', 
+    color: Colors.text, 
+    marginBottom: 13, 
+    fontFamily: 'DM Sans' 
+  },
+  daysContainer: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    gap: 5 
+  },
   dayButton: {
     flex: 1,
     maxWidth: 40,
@@ -488,9 +589,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dayButtonActive: { backgroundColor: Colors.primary },
-  dayButtonText: { fontSize: 12, color: Colors.primary, fontWeight: '600', fontFamily: 'DM Sans' },
-  dayButtonTextActive: { color: Colors.white },
+  dayButtonActive: { 
+    backgroundColor: Colors.primary 
+  },
+  dayButtonText: { 
+    fontSize: 12, 
+    color: Colors.primary, 
+    fontWeight: '600', 
+    fontFamily: 'DM Sans' 
+  },
+  dayButtonTextActive: { 
+    color: Colors.white 
+
+  },
   settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -500,9 +611,22 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
     gap: 10,
   },
-  settingTextBlock: { flex: 1 },
-  settingLabel: { fontSize: 14, fontWeight: '500', color: Colors.text, fontFamily: 'DM Sans' },
-  settingSublabel: { fontSize: 11, color: Colors.primary, marginTop: 3, lineHeight: 16, fontFamily: 'DM Sans' },
+  settingTextBlock: { 
+    flex: 1 
+  },
+  settingLabel: { 
+    fontSize: 14, 
+    fontWeight: '500', 
+    color: Colors.text, 
+    fontFamily: 'DM Sans' 
+  },
+  settingSublabel: { 
+    fontSize: 11, 
+    color: Colors.primary, 
+    marginTop: 3, 
+    lineHeight: 16, 
+    fontFamily: 'DM Sans' 
+  },
   soundPickerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -511,14 +635,85 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
     gap: 11,
   },
-  soundPickerIcon: { width: 34, height: 34, borderRadius: 10, backgroundColor: '#EDF4FF', alignItems: 'center', justifyContent: 'center' },
-  soundPickerText: { flex: 1 },
-  snoozeSettings: { backgroundColor: '#F8FAFD', borderRadius: 13, paddingHorizontal: 13, paddingVertical: 3, marginTop: 12 },
-  numberSetting: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 },
-  numberControls: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  stepButton: { width: 30, height: 30, borderRadius: 15, backgroundColor: Colors.white, borderWidth: 1, borderColor: '#DCE8FA', alignItems: 'center', justifyContent: 'center' },
-  numberValue: { minWidth: 48, textAlign: 'center', fontSize: 14, color: Colors.text, fontWeight: '600', fontFamily: 'DM Sans' },
-  numberUnit: { fontSize: 10, color: Colors.textSecondary, fontWeight: '400' },
-  bottomNote: { flexDirection: 'row', gap: 7, marginTop: 20, alignItems: 'flex-start' },
-  bottomNoteText: { flex: 1, color: Colors.textMuted, fontSize: 10, lineHeight: 15, fontFamily: 'DM Sans' },
+  soundPickerIcon: { 
+    width: 34, 
+    height: 34, 
+    borderRadius: 10, 
+    backgroundColor: '#EDF4FF', 
+    alignItems: 'center', 
+    justifyContent: 'center' 
+  },
+  soundPickerText: { 
+    flex: 1 
+  },
+  snoozeSettings: { 
+    backgroundColor: '#F8FAFD', 
+    borderRadius: 13, 
+    paddingHorizontal: 13, 
+    paddingVertical: 3, 
+    marginTop: 12 
+  },
+  numberSetting: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    paddingVertical: 10 
+  },
+  numberControls: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 10 
+  },
+  stepButton: { 
+    width: 30, 
+    height: 30, 
+    borderRadius: 15, 
+    backgroundColor: Colors.white, 
+    borderWidth: 1, 
+    borderColor: '#DCE8FA', 
+    alignItems: 'center', 
+    justifyContent: 'center' 
+  },
+  numberValue: { 
+    minWidth: 48, 
+    textAlign: 'center', 
+    fontSize: 14, 
+    color: Colors.text, 
+    fontWeight: '600', 
+    fontFamily: 'DM Sans' 
+  },
+  numberUnit: { 
+    fontSize: 10, 
+    color: Colors.textSecondary, 
+    fontWeight: '400' 
+  },
+  bottomNote: { 
+    flexDirection: 'row', 
+    gap: 7, 
+    marginTop: 20, 
+    alignItems: 'flex-start' 
+  },
+  bottomNoteText: { 
+    flex: 1, 
+    color: Colors.textMuted, 
+    fontSize: 10, 
+    lineHeight: 15, 
+    fontFamily: 'DM Sans' 
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 24,
+    paddingVertical: 14,
+    backgroundColor: '#FEF2F2', 
+    borderRadius: 12,
+    gap: 8,
+  },
+  deleteButtonText: {
+    color: '#EF4444',
+    fontSize: 15,
+    fontWeight: '600',
+    fontFamily: 'DM Sans',
+  },
 });

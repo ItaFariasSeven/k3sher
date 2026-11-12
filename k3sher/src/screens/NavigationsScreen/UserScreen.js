@@ -78,6 +78,20 @@ export default function UserScreen() {
     }
   };
 
+  const handleLogout = () => {
+    Alert.alert('Sair da conta', 'Tem certeza que deseja desconectar?', [
+      { text: 'Cancelar', style: 'cancel' },
+      { 
+        text: 'Sair', 
+        style: 'destructive', 
+        onPress: async () => {
+          await logout();
+          navigation.replace('Login');
+        }
+      }
+    ]);
+  };
+
   // Função para lidar com a abertura/fechamento com transição
   const toggleExpand = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -129,11 +143,11 @@ export default function UserScreen() {
           </TouchableOpacity>
 
           <Text style={styles.userName}>
-            {firstName || lastName ? `${firstName} ${lastName}`.trim() : 'Lucas Scott'}
+            {firstName || lastName ? `${firstName} ${lastName}`.trim() : 'Usuário K3sher'}
           </Text>
-          <Text style={styles.userHandle}>
+          {/* <Text style={styles.userHandle}>
             @{firstName || lastName ? `${firstName}${lastName}`.toLowerCase().replace(/\s/g, '') : 'lucasscott3'}
-          </Text>
+          </Text> */}
           <Text style={styles.userEmail}>{email}</Text>
         </View>
 
@@ -234,6 +248,15 @@ export default function UserScreen() {
           </View>
         )}
 
+        <TouchableOpacity 
+          activeOpacity={0.8} 
+          onPress={handleLogout} 
+          style={styles.logoutButton}
+        >
+          <Ionicons name="log-out-outline" size={20} color="#EF4444" />
+          <Text style={styles.logoutButtonText}>Sair da conta</Text>
+        </TouchableOpacity>
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -246,15 +269,15 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     alignItems: 'center',
-    paddingVertical: 24,
     paddingHorizontal: 24,
+    paddingTop:40
   },
   screenTitle: {
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#262626', // neutral-800
     marginBottom: 20,
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium',
+    // fontFamily: Platform.OS === 'ios' ? 'System' : 'sans-serif-medium',
   },
   profileHeader: {
     alignItems: 'center',
@@ -368,6 +391,19 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 40,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  logoutButtonText: {
+    color: '#EF4444',
+    fontSize: 14,
     fontWeight: '600',
   },
 });

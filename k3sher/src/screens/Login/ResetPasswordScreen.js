@@ -61,7 +61,7 @@ export default function ResetPasswordScreen({ route, navigation }) {
     <ScreenContainer scrollable>
       <View style={styles.header}>
         <Image
-          source={{ uri: 'https://placehold.co/341x321' }}
+          source={require('../../assets/login/confirmaremailimage.png')}
           style={styles.illustration}
           resizeMode="contain"
         />

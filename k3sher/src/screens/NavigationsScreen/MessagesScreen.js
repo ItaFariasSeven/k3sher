@@ -1,22 +1,46 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, FlatList, StyleSheet, Alert } from 'react-native';
+import React, { useState, useMemo, useEffect  } from 'react';
+import { View, Text, FlatList, StyleSheet, Alert, ActivityIndicator  } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
 
 // Importações dos dados e subcomponentes
-import { CATEGORIES, PREDEFINED_MESSAGES } from '../../data/messages';
+import { PREDEFINED_MESSAGES } from '../../data/messages';
 import FilterPills from '../../components/FilterPills';
 import MessageCard from '../../components/MessageCard';
 
 export default function MessagesScreen() {
   const [selectedFilter, setSelectedFilter] = useState('Todos');
+  const [messages, setMessages] = useState([]);
+  const [categories, setCategories] = useState(['Todos']);
+  const [loading, setLoading] = useState(true);
 
-  // useMemo garante que a lista só será recalculada quando o filtro mudar.
-  // Excelente para performance quando se tem centenas de itens.
+  useEffect(() => {
+    loadMessages();
+  }, []);
+
+  const loadMessages = async () => {
+    try {
+      setLoading(true);
+      // Aqui, futuramente você fará a chamada da API:
+      // const data = await getMessagesFromApi();
+      const data = PREDEFINED_MESSAGES; 
+      
+      // Mapeia dinamicamente as categorias que vieram dos dados
+      const dynamicCategories = ['Todos', ...new Set(data.map(m => m.category))];
+      
+      setMessages(data);
+      setCategories(dynamicCategories);
+    } catch (error) {
+      Alert.alert('Erro', 'Não foi possível carregar as mensagens.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredMessages = useMemo(() => {
-    if (selectedFilter === 'Todos') return PREDEFINED_MESSAGES;
-    return PREDEFINED_MESSAGES.filter((m) => m.category === selectedFilter);
-  }, [selectedFilter]);
+    if (selectedFilter === 'Todos') return messages;
+    return messages.filter((m) => m.category === selectedFilter);
+  }, [selectedFilter, messages]);
 
   const copyToClipboard = async (text) => {
     await Clipboard.setStringAsync(text);
@@ -27,41 +51,45 @@ export default function MessagesScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Cabeçalho */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Mensagens prontas</Text>
       </View>
 
-      {/* Componente de Filtros isolado */}
+      {/* Componente de Filtros */}
       <FilterPills
-        categories={CATEGORIES}
+        categories={categories}
         selected={selectedFilter}
         onSelect={setSelectedFilter}
       />
 
-      {/* Lista de Mensagens Componentizada */}
-      <FlatList
-        data={filteredMessages}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
-        initialNumToRender={10} // Otimização para listas grandes
-        maxToRenderPerBatch={10} // Otimização para listas grandes
-        renderItem={({ item }) => (
-          <MessageCard 
-            category={item.category} 
-            text={item.text} 
-            onCopy={copyToClipboard} 
-          />
-        )}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
-              Nenhuma mensagem encontrada para este filtro.
-            </Text>
-          </View>
-        }
-      />
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2563EB" />
+        </View>
+      ) : (
+        <FlatList
+          data={filteredMessages}
+          keyExtractor={(item) => String(item.id)}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          renderItem={({ item }) => (
+            <MessageCard 
+              category={item.category} 
+              text={item.text} 
+              onCopy={copyToClipboard} 
+            />
+          )}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>
+                Nenhuma mensagem encontrada para este filtro.
+              </Text>
+            </View>
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -72,18 +100,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#FAFAFA',
   },
   header: {
-    backgroundColor: '#F5F3FF',
+    // backgroundColor: '#F5F3FF',
     paddingVertical: 16,
+    paddingTop: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    // borderBottomWidth: 1,
+    // borderBottomColor: '#E5E7EB',
   },
   headerTitle: {
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: '700',
     color: '#262626',
-    fontFamily: 'Inter',
+    // fontFamily: 'Inter',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   listContent: {
     padding: 16,

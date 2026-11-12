@@ -1,16 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  FlatList,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView, FlatList, } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Notifications from 'expo-notifications';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -101,6 +90,7 @@ function TimeWheel({ data, selectedIndex, onSelect }) {
     <FlatList
       ref={flatListRef}
       data={data}
+      nestedScrollEnabled={true}
       keyExtractor={(item) => String(item.value)}
       showsVerticalScrollIndicator={false}
       snapToInterval={WHEEL_ITEM_HEIGHT}
@@ -241,9 +231,11 @@ export default function AddPrayerRequestScreen({ navigation }) {
         style={styles.flex}
       >
         <ScrollView
+          style={{ flex: 1 }}
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true}
+          nestedScrollEnabled={true}
         >
           <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
@@ -310,7 +302,7 @@ export default function AddPrayerRequestScreen({ navigation }) {
                 onToggle={() => setNotifyEnabled(!notifyEnabled)}
               />
               <CheckOption
-                label="Confirmo que vou me comprometo a orar por esse pedido"
+                label="Confirmo que vou me comprometer a orar por esse pedido"
                 checked={committed}
                 onToggle={() => setCommitted(!committed)}
               />
@@ -322,7 +314,7 @@ export default function AddPrayerRequestScreen({ navigation }) {
             onPress={handleSubmit}
             disabled={!canSubmit}
             style={[styles.button, canSubmit && styles.buttonActive]}
-          >
+            >
             <Text style={[styles.buttonText, canSubmit && styles.buttonTextActive]}>
               {loading ? 'Salvando...' : 'Orar'}
             </Text>
@@ -337,6 +329,7 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: Colors.background,
+    ...Platform.select({ web: { maxHeight: '100vh' } }),
   },
   flex: {
     flex: 1,
@@ -344,8 +337,8 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 24,
+    paddingTop: 40,
+    paddingBottom: 20,
   },
   header: {
     flexDirection: 'row',
@@ -362,7 +355,8 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   form: {
-    flex: 1,
+    // flex: 1,
+    flexGrow: 0
   },
   field: {
     marginBottom: 20,
@@ -416,11 +410,13 @@ const styles = StyleSheet.create({
     height: WHEEL_ITEM_HEIGHT,
     backgroundColor: 'rgba(0, 111, 253, 0.12)',
     borderRadius: 12,
-    zIndex: -1,
+    // zIndex: -1,
+    zIndex: 0,
   },
   wheel: {
     width: 70,
     height: WHEEL_ITEM_HEIGHT * 5,
+    zIndex: 1
   },
   periodWheel: {
     width: 60,
@@ -472,6 +468,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
+    marginBottom:20
   },
   buttonActive: {
     backgroundColor: Colors.primary,

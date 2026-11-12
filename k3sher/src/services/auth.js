@@ -1,4 +1,3 @@
-
 import api from './api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -55,6 +54,11 @@ export const resetPassword = async (
   return response.data;
 };
 
+export const logout = async () => {
+  await AsyncStorage.removeItem('@k3sher:token');
+  await AsyncStorage.removeItem('@k3sher:refresh');
+};
+
 export const getProfile = async () => {
   const response = await api.get('/auth/profile/');
   return response.data;
@@ -67,5 +71,21 @@ export const updateProfile = async (formData) => {
       'Content-Type': 'multipart/form-data',
     },
   });
+  return response.data;
+};
+
+// Nova função para o Login Social (Google)
+export const googleLogin = async (idToken) => {
+  // Envia o idToken nativo do Google para o seu backend Django validar
+  const response = await api.post('/auth/google/', {
+    token: idToken
+  });
+
+  const { access, refresh } = response.data;
+
+  // Se o backend confirmar, salva os tokens no app exatamente como no login padrão
+  if (access) await AsyncStorage.setItem('@k3sher:token', access);
+  if (refresh) await AsyncStorage.setItem('@k3sher:refresh', refresh);
+
   return response.data;
 };

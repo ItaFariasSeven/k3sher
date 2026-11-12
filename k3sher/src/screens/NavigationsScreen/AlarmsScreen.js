@@ -1,15 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  RefreshControl,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Switch, RefreshControl, Alert, ActivityIndicator, } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -71,14 +61,15 @@ function AlarmCard({ alarm, onToggle, onEdit, onDelete }) {
       </TouchableOpacity>
 
       <View style={styles.cardActions}>
-        <TouchableOpacity
+        {/* 3 pontos de edição */}
+        {/* <TouchableOpacity
           onPress={onDelete}
           style={styles.moreButton}
           accessibilityRole="button"
           accessibilityLabel="Excluir alarme"
         >
           <Ionicons name="ellipsis-vertical" size={19} color={Colors.textMuted} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <Switch
           value={Boolean(alarm.enabled)}
           onValueChange={onToggle}
@@ -190,7 +181,7 @@ export default function AlarmsScreen({ navigation }) {
             <Ionicons name="leaf-outline" size={21} color={Colors.primary} />
           </View>
           <Text style={styles.pauseTitle}>Pausa para oração</Text>
-          <Text style={styles.pauseDescription}>Reserve alguns minutos para desacelerar e estar com Deus.</Text>
+          <Text style={styles.pauseDescription}>Reserve alguns minutos para desacelerar e estar a sós com Deus.</Text>
           <TouchableOpacity activeOpacity={0.85} onPress={handlePausePrayer} style={styles.pauseButton}>
             <Text style={styles.pauseButtonText}>Iniciar</Text>
             <Ionicons name="arrow-forward" size={15} color={Colors.white} />
@@ -243,9 +234,17 @@ export default function AlarmsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F5F7FA' },
-  container: { flex: 1 },
-  content: { paddingHorizontal: 20, paddingTop: 18 },
+  safe: { 
+    flex: 1, 
+    backgroundColor: '#F5F7FA' 
+  },
+  container: { 
+    flex: 1 
+  },
+  content: { 
+    paddingHorizontal: 20, 
+    paddingTop: 40 
+  },
   pauseCard: {
     backgroundColor: Colors.white,
     borderRadius: 22,
@@ -254,20 +253,81 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 29,
     shadowColor: '#19345B',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { 
+      width: 0, 
+      height: 4 
+    },
     shadowOpacity: 0.08,
     shadowRadius: 12,
     elevation: 3,
   },
-  pauseIconWrap: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#EDF4FF', alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
-  pauseTitle: { fontSize: 19, fontWeight: '600', color: '#1E3A5F', fontFamily: 'DM Sans' },
-  pauseDescription: { fontSize: 12, lineHeight: 18, color: Colors.textSecondary, textAlign: 'center', marginTop: 6, marginBottom: 16, fontFamily: 'DM Sans' },
-  pauseButton: { minWidth: 112, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: Colors.primary, borderRadius: 12, paddingHorizontal: 20, paddingVertical: 11 },
-  pauseButtonText: { color: Colors.white, fontSize: 13, fontWeight: '600', fontFamily: 'DM Sans' },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
-  sectionTitle: { fontSize: 18, fontWeight: '600', color: Colors.text, fontFamily: 'DM Sans' },
-  sectionSubtitle: { marginTop: 2, fontSize: 12, color: Colors.textMuted, fontFamily: 'DM Sans' },
-  alarmCount: { fontSize: 12, color: Colors.primary, backgroundColor: '#E8F1FF', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, overflow: 'hidden' },
+  pauseIconWrap: { 
+    width: 42, 
+    height: 42, 
+    borderRadius: 21, 
+    backgroundColor: '#EDF4FF', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    marginBottom: 10 
+  },
+  pauseTitle: { 
+    fontSize: 19, 
+    fontWeight: '600', 
+    color: '#1E3A5F', 
+    fontFamily: 'DM Sans' 
+  },
+  pauseDescription: { 
+    fontSize: 12, 
+    lineHeight: 18, 
+    color: Colors.textSecondary,
+    textAlign: 'center', 
+    marginTop: 6, 
+    marginBottom: 16, 
+    fontFamily: 'DM Sans' 
+  },
+  pauseButton: { 
+    minWidth: 112, 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    gap: 8, 
+    backgroundColor: Colors.primary, 
+    borderRadius: 12, 
+    paddingHorizontal: 20, paddingVertical: 11 
+  },
+  pauseButtonText: { 
+    color: Colors.white, 
+    fontSize: 13, 
+    fontWeight: '600', 
+    fontFamily: 'DM Sans' 
+  },
+  sectionHeader: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 14 
+  },
+  sectionTitle: { 
+    fontSize: 18, 
+    fontWeight: '600', 
+    color: Colors.text, 
+    fontFamily: 'DM Sans' 
+  },
+  sectionSubtitle: { 
+    marginTop: 2, 
+    fontSize: 12, 
+    color: Colors.textMuted, 
+    fontFamily: 'DM Sans' 
+  },
+  alarmCount: { 
+    fontSize: 12, 
+    color: Colors.primary, 
+    backgroundColor: '#E8F1FF', 
+    paddingHorizontal: 10, 
+    paddingVertical: 5, 
+    borderRadius: 20, 
+    overflow: 'hidden' 
+  },
   alarmCard: {
     minHeight: 98,
     flexDirection: 'row',
@@ -279,26 +339,116 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginBottom: 12,
     shadowColor: '#19345B',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { 
+      width: 0, 
+      height: 2 
+
+    },
     shadowOpacity: 0.055,
     shadowRadius: 7,
     elevation: 2,
   },
-  alarmCardDisabled: { backgroundColor: '#FCFCFD', opacity: 0.8 },
-  alarmMain: { flex: 1, justifyContent: 'center', minHeight: 72 },
-  timeLine: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
-  alarmTime: { fontSize: 31, color: Colors.text, fontWeight: '400', fontFamily: 'DM Sans' },
-  alarmPeriod: { fontSize: 11, color: Colors.textSecondary, fontFamily: 'DM Sans' },
-  daysRow: { flexDirection: 'row', gap: 12, marginTop: 1 },
-  dayText: { fontSize: 10, color: '#B6BEC9', fontFamily: 'DM Sans' },
-  dayTextActive: { color: Colors.primary, fontWeight: '600' },
-  alarmLabel: { marginTop: 5, fontSize: 11, color: Colors.textSecondary, fontFamily: 'DM Sans' },
-  cardActions: { alignItems: 'center', justifyContent: 'center', gap: 5, marginLeft: 8 },
-  moreButton: { width: 30, height: 26, alignItems: 'center', justifyContent: 'center' },
-  disabledText: { color: '#AEB6C1' },
-  emptyCard: { alignItems: 'center', paddingHorizontal: 24, paddingVertical: 34, borderRadius: 18, backgroundColor: Colors.white, gap: 8 },
-  emptyTitle: { fontSize: 15, fontWeight: '600', color: Colors.text, fontFamily: 'DM Sans' },
-  emptyText: { fontSize: 12, lineHeight: 18, color: Colors.textMuted, textAlign: 'center', fontFamily: 'DM Sans' },
-  loadingState: { alignItems: 'center', gap: 10, paddingTop: 40 },
-  fab: { position: 'absolute', right: 24, width: 58, height: 58, borderRadius: 29, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', shadowColor: Colors.primary, shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.25, shadowRadius: 8, elevation: 6 },
+  alarmCardDisabled: { 
+    backgroundColor: '#FCFCFD', 
+    opacity: 0.8
+  },
+  alarmMain: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    minHeight: 72 
+  },
+  timeLine: { 
+    flexDirection: 'row', 
+    alignItems: 'baseline', 
+    gap: 6 
+  },
+  alarmTime: { 
+    fontSize: 31, 
+    color: Colors.text, 
+    fontWeight: '400', 
+    fontFamily: 'DM Sans' 
+  },
+  alarmPeriod: { 
+    fontSize: 11, 
+    color: Colors.textSecondary, 
+    fontFamily: 'DM Sans' 
+  },
+  daysRow: { 
+    flexDirection: 'row', 
+    gap: 12, 
+    marginTop: 1 
+  },
+  dayText: { 
+    fontSize: 10, 
+    color: '#B6BEC9', 
+    fontFamily: 'DM Sans' 
+  },
+  dayTextActive: { 
+    color: Colors.primary, 
+    fontWeight: '600' 
+  },
+  alarmLabel: { 
+    marginTop: 5, 
+    fontSize: 11, 
+    color: Colors.textSecondary, 
+    fontFamily: 'DM Sans' 
+  },
+  cardActions: { 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    gap: 5, 
+    marginLeft: 8 
+  },
+  moreButton: { 
+    width: 30, height: 26, 
+    alignItems: 'center', 
+    justifyContent: 'center' 
+  },
+  disabledText: { 
+    color: '#AEB6C1' 
+  },
+  emptyCard: { 
+    alignItems: 'center', 
+    paddingHorizontal: 24, 
+    paddingVertical: 34, 
+    borderRadius: 18, 
+    backgroundColor: Colors.white, 
+    gap: 8 
+  },
+  emptyTitle: { 
+    fontSize: 15, 
+    fontWeight: '600', 
+    color: Colors.text, 
+    fontFamily: 'DM Sans' 
+  },
+  emptyText: { 
+    fontSize: 12, 
+    lineHeight: 18, 
+    color: Colors.textMuted, 
+    textAlign: 'center', 
+    fontFamily: 'DM Sans' 
+  },
+  loadingState: { 
+    alignItems: 'center', 
+    gap: 10, 
+    paddingTop: 40 
+  },
+  fab: { 
+    position: 'absolute', 
+    right: 24, 
+    width: 58, 
+    height: 58, 
+    borderRadius: 29, 
+    backgroundColor: Colors.primary, 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    shadowColor: Colors.primary, 
+    shadowOffset: { 
+      width: 0, 
+      height: 5 
+    }, 
+    shadowOpacity: 0.25, 
+    shadowRadius: 8, 
+    elevation: 6 
+  },
 });

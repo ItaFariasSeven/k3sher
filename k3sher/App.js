@@ -4,7 +4,7 @@ import * as Notifications from 'expo-notifications';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-
+import io from 'socket.io-client';
 import LoginScreen from './src/screens/Login/LoginScreen';
 import RegisterStartScreen from './src/screens/Login/RegisterStartScreen';
 import EmailVerificationScreen from './src/screens/Login/EmailVerificationScreen';
@@ -13,12 +13,12 @@ import ForgotPasswordScreen from './src/screens/Login/ForgotPasswordScreen';
 import ResetPasswordScreen from './src/screens/Login/ResetPasswordScreen';
 import NavBar from './src/components/NavBar';
 import AddPrayerRequestScreen from './src/screens/SecondaryScreen/AddPrayerRequestScreen';
-import AlarmConfigScreen from './src/components/subScreen/AlarmConfigScreen';
-import AlarmRingingScreen from './src/components/subScreen/AlarmRingingScreen';
-import AlarmSoundPickerScreen from './src/components/subScreen/AlarmSoundPickerScreen';
+import AlarmConfigScreen from './src/screens/SecondaryScreen/AlarmConfigScreen';
+import AlarmRingingScreen from './src/screens/SecondaryScreen/AlarmRingingScreen';
+import AlarmSoundPickerScreen from './src/screens/SecondaryScreen/AlarmSoundPickerScreen';
 
-const SEU_IP_LOCAL = '192.168.1.15'; 
-// const socket = io(`http://${SEU_IP_LOCAL}:3000`);
+const BACKEND_URL = 'http://192.168.1.15:3000'; 
+const socket = io(BACKEND_URL);
 
 const Stack = createStackNavigator();
 const navigationRef = createNavigationContainerRef();

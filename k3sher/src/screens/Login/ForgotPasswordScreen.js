@@ -7,7 +7,7 @@ import ScreenContainer from '../../components/ScreenContainer';
 import InputField from '../../components/InputField';
 import AppButton from '../../components/AppButton';
 import { Colors } from '../../constants/colors';
-import { sendVerificationCode } from '../../services/auth';
+import { sendVerificationCode, verifyCode } from '../../services/auth';
 
 export default function ForgotPasswordScreen({ route, navigation }) {
   const { email = '' } = route.params || {};
@@ -61,8 +61,20 @@ export default function ForgotPasswordScreen({ route, navigation }) {
       Alert.alert('Erro', 'Digite o código de 6 dígitos.');
       return;
     }
-    await verifyCode(emailValue, code, 'password_reset');
-    navigation.navigate('ResetPassword', { email: emailValue, code });
+    try {
+      setLoading(true);
+      // Agora capturamos se o código é válido no backend
+      await verifyCode(emailValue, code, 'password_reset');
+      navigation.navigate('ResetPassword', { email: emailValue, code });
+    } catch (error) {
+      const msg =
+        error.response?.data?.code?.[0] ||
+        error.response?.data?.detail ||
+        'Código inválido ou expirado.';
+      Alert.alert('Erro', msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

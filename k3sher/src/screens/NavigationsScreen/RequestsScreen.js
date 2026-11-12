@@ -1,18 +1,5 @@
-// ============================================================
-// src/screens/RequestsScreen.js
-// ============================================================
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  RefreshControl,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, RefreshControl, ActivityIndicator, Alert, } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -193,7 +180,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingTop: 26,
+    paddingTop: 40,
     paddingBottom: 8,
   },
   headerTitle: {
@@ -204,7 +191,7 @@ const styles = StyleSheet.create({
   addButton: {
     position: 'absolute',
     right: 24,
-    top: 26,
+    paddingTop: 5,
   },
   searchWrapper: {
     flexDirection: 'row',

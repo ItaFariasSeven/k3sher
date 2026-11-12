@@ -1,6 +1,5 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import RequestsScreen from '../screens/NavigationsScreen/RequestsScreen';
 import ThanksScreen from '../screens/NavigationsScreen/ThanksScreen';
@@ -12,11 +11,11 @@ import ButtonNavBar from './ButtonNavBar';
 const Tab = createBottomTabNavigator();
 
 const TABS = [
-  { name: 'Requests', label: 'Pedidos', icon: 'chatbubble', family: 'Ionicons' },
-  { name: 'Thanks', label: 'Agradecimentos', icon: 'human-handsup', family: 'MaterialCommunityIcons' },
-  { name: 'Alarms', label: 'Alarmes', icon: 'alarm', family: 'Ionicons' },
-  { name: 'User', label: 'Usuário', icon: 'person', family: 'Ionicons' },
-  { name: 'Messages', label: 'Mensagens', icon: 'paper-plane', family: 'Ionicons' },
+  { name: 'Requests', label: 'Pedidos', icon: 'chatbubble', family: 'Ionicons', component: RequestsScreen },
+  { name: 'Thanks', label: 'Agradecimentos', icon: 'human-handsup', family: 'MaterialCommunityIcons', component: ThanksScreen },
+  { name: 'Alarms', label: 'Alarmes', icon: 'alarm', family: 'Ionicons', component: AlarmsScreen },
+  { name: 'User', label: 'Usuário', icon: 'person', family: 'Ionicons', component: UserScreen },
+  { name: 'Messages', label: 'Mensagens', icon: 'paper-plane', family: 'Ionicons', component: MessagesScreen },
 ];
 
 export default function NavBar() {
@@ -29,26 +28,9 @@ export default function NavBar() {
         <Tab.Screen
           key={tab.name}
           name={tab.name}
-          component={getScreenComponent(tab.name)}
+          component={tab.component}
         />
       ))}
     </Tab.Navigator>
   );
-}
-
-function getScreenComponent(name) {
-  switch (name) {
-    case 'Requests':
-      return RequestsScreen;
-    case 'Thanks':
-      return ThanksScreen;
-    case 'Alarms':
-      return AlarmsScreen;
-    case 'User':
-      return UserScreen;
-    case 'Messages':
-      return MessagesScreen;
-    default:
-      return RequestsScreen;
-  }
 }

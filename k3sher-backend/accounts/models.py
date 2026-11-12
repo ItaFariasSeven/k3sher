@@ -47,6 +47,7 @@ class VerificationCode(models.Model):
     purpose = models.CharField(max_length=20, choices=PURPOSE_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
     used = models.BooleanField(default=False)
+    attempts = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
         ordering = ['-created_at']

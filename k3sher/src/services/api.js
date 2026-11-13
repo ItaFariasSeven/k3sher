@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const api = axios.create({
   baseURL:
     process.env.EXPO_PUBLIC_API_URL ||
-    'http://127.0.0.1:8000/api',
+    'https://k3sher.onrender.com/api',
 
   timeout: 15000,
 

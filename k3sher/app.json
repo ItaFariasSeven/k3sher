@@ -23,8 +23,8 @@
         "foregroundImage": "./src/assets/logo/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.k3sher.app",
-      "versionCode": 1,
+      "package": "br.com.k3sher.app",
+      "versionCode": 2,
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",

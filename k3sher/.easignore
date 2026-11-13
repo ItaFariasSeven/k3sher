@@ -1,0 +1,5 @@
+node_modules/
+.git/
+.expo/
+# Note que o google-services.json NÃO está aqui, 
+# então o Expo vai conseguir levá-lo para a nuvem para gerar o app!

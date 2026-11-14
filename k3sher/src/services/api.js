@@ -7,7 +7,7 @@ const api = axios.create({
     process.env.EXPO_PUBLIC_API_URL ||
     'https://k3sher.onrender.com/api',
 
-  timeout: 15000,
+  timeout: 60000,
 
   headers: {
     'Content-Type': 'application/json',

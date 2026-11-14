@@ -17,8 +17,10 @@ import AlarmConfigScreen from './src/screens/SecondaryScreen/AlarmConfigScreen';
 import AlarmRingingScreen from './src/screens/SecondaryScreen/AlarmRingingScreen';
 import AlarmSoundPickerScreen from './src/screens/SecondaryScreen/AlarmSoundPickerScreen';
 
-const BACKEND_URL = 'http://192.168.1.15:3000'; 
-const socket = io(BACKEND_URL);
+const BACKEND_URL = 'https://k3sher.onrender.com'; 
+const socket = io(BACKEND_URL, {
+  transports: ['websocket']
+});
 
 const Stack = createStackNavigator();
 const navigationRef = createNavigationContainerRef();

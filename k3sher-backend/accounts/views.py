@@ -18,6 +18,7 @@ from .serializers import (
     ResetPasswordSerializer,
 )
 from .models import VerificationCode
+import resend
 import logging
 
 
@@ -47,32 +48,69 @@ class RegisterView(APIView):
 
 
 def send_verification_email(user, code, purpose):
+
+    if not settings.RESEND_API_KEY:
+        raise ImproperlyConfigured(
+            'RESEND_API_KEY não foi configurada.'
+        )
+
+    if not settings.RESEND_FROM_EMAIL:
+        raise ImproperlyConfigured(
+            'RESEND_FROM_EMAIL não foi configurada.'
+        )
+
+    resend.api_key = settings.RESEND_API_KEY
+
+    nome = escape(user.first_name or user.email)
+
     if purpose == 'register':
-        subject = 'K3sher - Código de verificação'
-        message = f'''
-        Olá, {user.first_name or user.email}!
+        subject = 'K3SHER - Código de verificação'
 
-        Seu código de verificação é: {code}
+        mensagem = (
+            f'Olá, {nome}!\n\n'
+            f'Seu código de verificação é: {code}\n\n'
+            'Ele expira em 10 minutos.'
+        )
 
-        Ele expira em 10 minutos.
-        '''
+        titulo = 'Confirme seu e-mail'
+
     else:
-        subject = 'K3sher - Recuperação de senha'
-        message = f'''
-        Olá, {user.first_name or user.email}!
+        subject = 'K3SHER - Recuperação de senha'
 
-        Seu código para redefinir a senha é: {code}
+        mensagem = (
+            f'Olá, {nome}!\n\n'
+            f'Seu código para redefinir a senha é: {code}\n\n'
+            'Ele expira em 10 minutos.'
+        )
 
-        Ele expira em 10 minutos.
-        '''
+        titulo = 'Redefinição de senha'
 
-    send_mail(
-        subject=subject,
-        message=message,
-        from_email=None,
-        recipient_list=[user.email],
-        fail_silently=False,
-    )
+    html = f"""
+        <div style="font-family: Arial, sans-serif; padding: 24px;">
+            <h2>{titulo}</h2>
+
+            <p>Olá, {nome}!</p>
+
+            <p>Seu código de verificação é:</p>
+
+            <h1 style="letter-spacing: 8px;">{code}</h1>
+
+            <p>Este código expira em 10 minutos.</p>
+
+            <p>Se você não solicitou este código,
+            ignore esta mensagem.</p>
+
+            <p>Equipe K3SHER</p>
+        </div>
+    """
+
+    return resend.Emails.send({
+        "from": settings.RESEND_FROM_EMAIL,
+        "to": [user.email],
+        "subject": subject,
+        "html": html,
+        "text": mensagem,
+    })
 
 
 class SendVerificationCodeView(APIView):

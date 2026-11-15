@@ -20,6 +20,8 @@ from .serializers import (
 from .models import VerificationCode
 import resend
 import logging
+from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 
 
 logger = logging.getLogger(__name__)

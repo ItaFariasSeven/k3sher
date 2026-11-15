@@ -155,13 +155,15 @@ class SendVerificationCodeView(APIView):
                 if not user:
                     etapa = "criar usuário pendente"
 
-                    user = User.objects.create(
+                    user = User(
                         email=email,
                         first_name='',
                         last_name='',
                         phone='',
                         is_active=False,
                     )
+                    user.set_unusable_password()
+                    user.save()
 
             else:
                 try:
@@ -452,7 +454,7 @@ class FirebaseSessionView(APIView):
                         )
 
                     # Não reativa contas desativadas administrativamente.
-                    if not user.is_active and user.has_usable_password():
+                    if ( not user.is_active and bool(user.password) and user.has_usable_password()):
                         return Response(
                             {'detail': 'Esta conta está desativada.'},
                             status=status.HTTP_403_FORBIDDEN

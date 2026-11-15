@@ -18,6 +18,10 @@ from .serializers import (
     ResetPasswordSerializer,
 )
 from .models import VerificationCode
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 User = get_user_model()
@@ -76,53 +80,117 @@ class SendVerificationCodeView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = SendCodeSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        etapa = "validar dados"
 
-        email = serializer.validated_data['email']
-        purpose = serializer.validated_data['purpose']
+        try:
+            serializer = SendCodeSerializer(data=request.data)
 
-        if purpose == 'register':
-            if User.objects.filter(email=email).exists():
+            if not serializer.is_valid():
                 return Response(
-                    {'email': 'Este email já está cadastrado.'},
+                    serializer.errors,
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            user, _ = User.objects.get_or_create(
-                email=email,
-                defaults={
-                    'first_name': '',
-                    'last_name': '',
-                    'phone': '',
-                    'is_active': False,
-                }
+
+            email = serializer.validated_data['email']
+            purpose = serializer.validated_data['purpose']
+
+            etapa = "consultar usuário"
+
+            if purpose == 'register':
+                user = User.objects.filter(email=email).first()
+
+                if user and user.is_active:
+                    return Response(
+                        {'email': ['Este e-mail já está cadastrado.']},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+                if not user:
+                    etapa = "criar usuário pendente"
+
+                    user = User.objects.create(
+                        email=email,
+                        first_name='',
+                        last_name='',
+                        phone='',
+                        is_active=False,
+                    )
+
+            else:
+                try:
+                    user = User.objects.get(email=email)
+
+                except User.DoesNotExist:
+                    return Response(
+                        {'email': ['Usuário não encontrado.']},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+            etapa = "invalidar códigos anteriores"
+
+            VerificationCode.objects.filter(
+                user=user,
+                purpose=purpose,
+                used=False
+            ).update(used=True)
+
+            etapa = "criar código de verificação"
+
+            code = ''.join(
+                str(secrets.randbelow(10))
+                for _ in range(6)
             )
-        else:
+
+            VerificationCode.objects.create(
+                user=user,
+                code=code,
+                purpose=purpose,
+            )
+
+            etapa = "enviar e-mail"
+
             try:
-                user = User.objects.get(email=email)
-            except User.DoesNotExist:
-                return Response(
-                    {'email': 'Usuário não encontrado.'},
-                    status=status.HTTP_400_BAD_REQUEST
+                send_verification_email(user, code, purpose)
+
+            except Exception:
+                logger.exception(
+                    "Falha SMTP na etapa de envio de e-mail."
                 )
 
-        # Invalida códigos antigos
-        VerificationCode.objects.filter(user=user, purpose=purpose, used=False).update(used=True)
+                return Response(
+                    {
+                        'detail': [
+                            'Não foi possível enviar o e-mail. '
+                            'Tente novamente.'
+                        ]
+                    },
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE
+                )
 
-        # Gera novo código de 6 dígitos
-        code = ''.join([str(secrets.randbelow(10)) for _ in range(6)])
+            logger.info(
+                "Código enviado com sucesso. Finalidade: %s",
+                purpose
+            )
 
-        VerificationCode.objects.create(
-            user=user,
-            code=code,
-            purpose=purpose,
-        )
+            return Response(
+                {'message': 'Código enviado com sucesso.'},
+                status=status.HTTP_200_OK
+            )
 
-        # Envia email
-        send_verification_email(user, code, purpose)
+        except Exception:
+            logger.exception(
+                "ERRO NO CADASTRO. Etapa: %s",
+                etapa
+            )
 
-        return Response({'message': 'Código enviado com sucesso.'})
+            return Response(
+                {
+                    'detail': [
+                        'Ocorreu um erro interno ao processar sua solicitação.'
+                    ]
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class VerifyCodeView(APIView):
@@ -174,7 +242,7 @@ class VerifyCodeView(APIView):
 class ResetPasswordView(APIView):
     authentication_classes = []
     permission_classes = [AllowAny]
-    
+
     def post(self, request):
         serializer = ResetPasswordSerializer(data=request.data)
         if not serializer.is_valid():

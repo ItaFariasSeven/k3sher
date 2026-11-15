@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import EmailTokenObtainPairView, RegisterView, ResetPasswordView, SendVerificationCodeView, UserProfileView, VerifyCodeView
+from .views import EmailTokenObtainPairView, RegisterView, ResetPasswordView, SendVerificationCodeView, UserProfileView, VerifyCodeView, FirebaseSessionView
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
@@ -8,4 +8,5 @@ urlpatterns = [
     path('verify-code/', VerifyCodeView.as_view(), name='verify-code'),
     path('reset-password/', ResetPasswordView.as_view(), name='reset-password'),
     path('profile/', UserProfileView.as_view(), name='profile'),
+    path('firebase/session/',FirebaseSessionView.as_view(),name='firebase-session'),
 ]

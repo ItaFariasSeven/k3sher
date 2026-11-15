@@ -22,6 +22,13 @@ import resend
 import logging
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.db import transaction
+
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from firebase_admin import auth as firebase_auth
+
+from .firebase_admin_setup import get_firebase_app
 
 
 logger = logging.getLogger(__name__)
@@ -342,3 +349,151 @@ class UserProfileView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class FirebaseSessionView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+
+        id_token = request.data.get('idToken')
+
+        if not id_token:
+            return Response(
+                {'detail': 'Firebase ID Token não fornecido.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Inicializa as credenciais administrativas.
+        firebase_app = get_firebase_app()
+
+        # Verifica assinatura, validade e revogação do token.
+        try:
+            decoded = firebase_auth.verify_id_token(
+                id_token,
+                app=firebase_app,
+                check_revoked=True
+            )
+
+        except Exception:
+            logger.exception('Falha ao validar Firebase ID Token.')
+
+            return Response(
+                {'detail': 'Token Firebase inválido ou expirado.'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        uid = decoded.get('uid')
+        email = decoded.get('email')
+        email_verified = decoded.get('email_verified', False)
+
+        if not uid or not email:
+            return Response(
+                {'detail': 'Identidade Firebase incompleta.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Somente e-mails verificados podem acessar o K3SHER.
+        if not email_verified:
+            return Response(
+                {'detail': 'Confirme seu e-mail antes de continuar.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        email = email.strip().lower()
+
+        display_name = (decoded.get('name') or '').strip()
+        name_parts = display_name.split(maxsplit=1)
+
+        first_name = name_parts[0][:50] if name_parts else email.split('@')[0][:50]
+        last_name = name_parts[1][:50] if len(name_parts) > 1 else ''
+
+        with transaction.atomic():
+
+            # Primeiro procura pelo UID Firebase.
+            user = User.objects.select_for_update().filter(
+                firebase_uid=uid
+            ).first()
+
+            if user:
+
+                # Atualiza o e-mail caso tenha sido alterado no Firebase.
+                if user.email.lower() != email:
+
+                    email_in_use = User.objects.filter(
+                        email__iexact=email
+                    ).exclude(pk=user.pk).exists()
+
+                    if email_in_use:
+                        return Response(
+                            {'detail': 'Este e-mail já pertence a outra conta.'},
+                            status=status.HTTP_409_CONFLICT
+                        )
+
+                    user.email = email
+
+                    user.save(update_fields=['email'])
+
+            else:
+
+                # Procura uma conta Django antiga pelo e-mail.
+                user = User.objects.select_for_update().filter(
+                    email__iexact=email
+                ).first()
+
+                if user:
+
+                    if user.firebase_uid and user.firebase_uid != uid:
+                        return Response(
+                            {'detail': 'Esta conta já está vinculada a outra identidade.'},
+                            status=status.HTTP_409_CONFLICT
+                        )
+
+                    # Não reativa contas desativadas administrativamente.
+                    if not user.is_active and user.has_usable_password():
+                        return Response(
+                            {'detail': 'Esta conta está desativada.'},
+                            status=status.HTTP_403_FORBIDDEN
+                        )
+
+                    # Vincula a conta antiga à identidade Firebase.
+                    user.firebase_uid = uid
+
+                    # Contas pendentes, sem senha Django, podem ser ativadas
+                    # após a confirmação efetiva do e-mail no Firebase.
+                    if not user.is_active:
+                        user.is_active = True
+
+                    user.save(
+                        update_fields=['firebase_uid', 'is_active']
+                    )
+
+                else:
+
+                    # Cria um novo usuário no PostgreSQL.
+                    user = User.objects.create_user(
+                        email=email,
+                        first_name=first_name,
+                        last_name=last_name,
+                        password=None,
+                        firebase_uid=uid,
+                        is_active=True
+                    )
+
+        # Confirma que a conta pode acessar o sistema.
+        if not user.is_active:
+            return Response(
+                {'detail': 'Esta conta está desativada.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Emite os JWTs utilizados pelas APIs atuais do K3SHER.
+        refresh = RefreshToken.for_user(user)
+
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': UserSerializer(user).data
+        }, status=status.HTTP_200_OK)

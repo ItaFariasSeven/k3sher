@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.utils import timezone
 import secrets
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 
 from .serializers import (
@@ -26,8 +26,14 @@ User = get_user_model()
 class EmailTokenObtainPairView(TokenObtainPairView):
     serializer_class = EmailTokenObtainPairSerializer
 
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
 
 class RegisterView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
@@ -66,6 +72,9 @@ def send_verification_email(user, code, purpose):
 
 
 class SendVerificationCodeView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
     def post(self, request):
         serializer = SendCodeSerializer(data=request.data)
         if not serializer.is_valid():
@@ -117,6 +126,9 @@ class SendVerificationCodeView(APIView):
 
 
 class VerifyCodeView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    
     def post(self, request):
         serializer = VerifyCodeSerializer(data=request.data)
         if not serializer.is_valid():
@@ -160,6 +172,9 @@ class VerifyCodeView(APIView):
 
 
 class ResetPasswordView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    
     def post(self, request):
         serializer = ResetPasswordSerializer(data=request.data)
         if not serializer.is_valid():

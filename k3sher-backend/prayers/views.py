@@ -13,9 +13,8 @@ class PrayerRequestListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return (
-            PrayerRequest.objects.filter(is_private=False) |
-            PrayerRequest.objects.filter(user=self.request.user)
+        return PrayerRequest.objects.filter(
+            user=self.request.user
         )
 
     def perform_create(self, serializer):

@@ -2,7 +2,7 @@
   "expo": {
     "name": "k3sher",
     "slug": "k3sher",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "orientation": "portrait",
     "icon": "./src/assets/logo/icon.png",
     "userInterfaceStyle": "light",
@@ -20,7 +20,7 @@
       },
       "package": "br.com.k3sher.app",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 5,
+      "versionCode": 6,
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",

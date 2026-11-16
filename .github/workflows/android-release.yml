@@ -9,6 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./k3sher
 
     permissions:
       contents: read
@@ -22,6 +25,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
+	  cache-dependency-path: k3sher/package-lock.json
 
       - name: Configurar Java
         uses: actions/setup-java@v4
@@ -149,6 +153,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: k3sher-release-aab
-          path: android/app/build/outputs/bundle/release/app-release.aab
+          path: k3sher/android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 7

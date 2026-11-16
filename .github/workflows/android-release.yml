@@ -139,7 +139,7 @@ jobs:
           test -s android/app/upload-keystore.jks
 
       - name: Compilar Android App Bundle
-        working-directory: android
+        working-directory: k3sher/android
         env:
           MYAPP_UPLOAD_STORE_FILE: upload-keystore.jks
           MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}

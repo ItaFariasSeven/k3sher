@@ -25,7 +25,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-	  cache-dependency-path: k3sher/package-lock.json
+          cache-dependency-path: k3sher/package-lock.json
 
       - name: Configurar Java
         uses: actions/setup-java@v4

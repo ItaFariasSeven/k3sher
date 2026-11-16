@@ -19,30 +19,39 @@ export default function LoginScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Erro', 'Preencha e-mail e senha.');
+  if (!email || !password) {
+    Alert.alert('Erro', 'Preencha e-mail e senha.');
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const resultado = await login(email.trim(), password);
+
+    if (!resultado.emailVerificado) {
+      navigation.replace('EmailVerification', {
+        emailOrPhone: email.trim(),
+      });
       return;
     }
 
-    try {
-      setLoading(true);
-      await login(email, password);
-      navigation.replace('NavBar');
-    } catch (error) {
-      console.log('ERRO COMPLETO:', error);
-      console.log('ERRO RESPONSE:', error.response);
-      console.log('ERRO MESSAGE:', error.message);
-      Alert.alert(
-        'Erro ao fazer login',
-        error.response?.data?.detail || 'Verifique suas credenciais.'
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+    navigation.replace('NavBar');
 
+  } catch (error) {
+    console.log('Erro no login:', error.code, error.message);
+
+    Alert.alert(
+      'Erro ao fazer login',
+      error.message || 'Não foi possível entrar.'
+    );
+
+  } finally {
+    setLoading(false);
+  }
+};
   return (
-    <ScreenContainer>
+    <ScreenContainer scrollable>
       <HeaderLogo title="Seja bem vindo" />
 
       <View style={styles.form}>

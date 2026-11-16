@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Switch, ScrollView
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
-import { createAlarm, updateAlarm } from '../../services/alarmService';
+import { createAlarm, updateAlarm, deleteAlarm } from '../../services/alarmService';
 import TimePicker from '../../components/TimePicker';
 
 const WEEK_DAYS = [

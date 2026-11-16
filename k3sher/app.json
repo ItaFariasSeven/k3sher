@@ -2,15 +2,10 @@
   "expo": {
     "name": "k3sher",
     "slug": "k3sher",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./src/assets/logo/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./src/assets/logo/icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -25,7 +20,7 @@
       },
       "package": "br.com.k3sher.app",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 3,
+      "versionCode": 4,
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",
@@ -45,6 +40,15 @@
         {
           "icon": "./src/assets/logo/icon.png",
           "color": "#ffffff"
+        }
+      ],
+      [
+      "expo-splash-screen",
+        {
+          "image": "./src/assets/logo/icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
         }
       ],
       "expo-audio",

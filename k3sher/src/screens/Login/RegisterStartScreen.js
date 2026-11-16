@@ -1,4 +1,3 @@
-// Tela de início do cadastro que recebe o email e solicita o envio do código de verificação.
 
 import React, { useState } from 'react';
 import { View, Image, StyleSheet, Alert } from 'react-native';
@@ -7,31 +6,21 @@ import ScreenContainer from '../../components/ScreenContainer';
 import HeaderLogo from '../../components/HeaderLogo';
 import InputField from '../../components/InputField';
 import AppButton from '../../components/AppButton';
-import { sendVerificationCode } from '../../services/auth';
 
 export default function RegisterStartScreen({ navigation }) {
-  const [emailOrPhone, setEmailOrPhone] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState('');
 
-  const handleContinue = async () => {
-    if (!emailOrPhone || !emailOrPhone.includes('@')) {
-      Alert.alert('Erro', 'Digite um email válido.');
+  const handleContinue = () => {
+    const emailNormalizado = email.trim().toLowerCase();
+
+    if (!emailNormalizado || !emailNormalizado.includes('@')) {
+      Alert.alert('Erro', 'Digite um e-mail válido.');
       return;
     }
 
-    try {
-      setLoading(true);
-      await sendVerificationCode(emailOrPhone, 'register');
-      navigation.navigate('EmailVerification', { emailOrPhone });
-    } catch (error) {
-      const msg =
-        error.response?.data?.email?.[0] ||
-        error.response?.data?.detail ||
-        'Erro ao enviar código. Tente novamente.';
-      Alert.alert('Erro', msg);
-    } finally {
-      setLoading(false);
-    }
+    navigation.navigate('RegisterComplete', {
+      emailOrPhone: emailNormalizado,
+    });
   };
 
   return (
@@ -46,10 +35,10 @@ export default function RegisterStartScreen({ navigation }) {
 
       <View style={styles.form}>
         <InputField
-          label="Email or Phone Number"
-          placeholder="Hello@tyler.com"
-          value={emailOrPhone}
-          onChangeText={setEmailOrPhone}
+          label="E-mail"
+          placeholder="seuemail@exemplo.com"
+          value={email}
+          onChangeText={setEmail}
           leftIcon="mail-outline"
           active
           keyboardType="email-address"
@@ -57,7 +46,7 @@ export default function RegisterStartScreen({ navigation }) {
         />
 
         <AppButton
-          title={loading ? 'Enviando...' : 'Continue'}
+          title="Continue"
           onPress={handleContinue}
         />
       </View>

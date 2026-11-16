@@ -16,19 +16,20 @@ export default function HeaderLogo({ title, subtitle }) {
 
 const styles = StyleSheet.create({
   container: {
+    width: '100%',
     alignItems: 'center',
-    marginBottom: 100,
+    marginBottom: 24,
     marginTop: 50,
   },
   title: {
     fontSize: 20,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: 30,
+    marginBottom: 16,
   },
   imagem:{
     width: '100%',
-    height: '100%',
+    // height: 90,
     resizeMode: 'contain'
   }
 });

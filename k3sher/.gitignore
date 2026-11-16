@@ -42,3 +42,9 @@ yarn-error.*
 
 # Configurações do Firebase
 google-services.json
+
+# Credenciais de assinatura Android
+credentials.json
+credentials/
+*.jks
+*.keystore

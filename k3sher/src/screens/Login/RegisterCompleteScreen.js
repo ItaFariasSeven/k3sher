@@ -8,7 +8,7 @@ import ScreenContainer from '../../components/ScreenContainer';
 import HeaderLogo from '../../components/HeaderLogo';
 import InputField from '../../components/InputField';
 import AppButton from '../../components/AppButton';
-import { register, login } from '../../services/auth';
+import { registrarComEmail } from '../../services/firebaseAuth';
 import { Colors } from '../../constants/colors';
 
 export default function RegisterCompleteScreen({ navigation, route }) {
@@ -35,24 +35,33 @@ export default function RegisterCompleteScreen({ navigation, route }) {
 
     try {
       setLoading(true);
-      await register({
-        email: emailOrPhone,
-        first_name: firstName,
-        last_name: lastName,
-        phone: '',
+
+      await registrarComEmail(
+        emailOrPhone,
         password,
-        confirm_password: confirmPassword,
+        `${firstName.trim()} ${lastName.trim()}`
+      );
+
+      navigation.replace('EmailVerification', {
+        emailOrPhone,
       });
 
-      await login(emailOrPhone, password);
-      navigation.replace('NavBar');
     } catch (error) {
-      const msg =
-        error.response?.data?.email?.[0] ||
-        error.response?.data?.password?.[0] ||
-        error.response?.data?.detail ||
-        'Erro ao criar conta.';
-      Alert.alert('Erro', msg);
+      console.log('Erro no cadastro Firebase:', error.code, error.message);
+
+      const mensagens = {
+        'auth/email-already-in-use': 'Este e-mail já possui uma conta.',
+        'auth/invalid-email': 'O endereço de e-mail é inválido.',
+        'auth/weak-password': 'A senha precisa ter pelo menos 6 caracteres.',
+        'auth/too-many-requests': 'Muitas tentativas. Tente novamente mais tarde.',
+      };
+
+      Alert.alert(
+        'Erro ao criar conta',
+        mensagens[error.code] ||
+          'Não foi possível criar sua conta. Tente novamente.'
+      );
+
     } finally {
       setLoading(false);
     }
@@ -116,7 +125,7 @@ export default function RegisterCompleteScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  form: { 
-    width: '100%' 
+  form: {
+    width: '100%'
   },
 });

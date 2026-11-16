@@ -1,0 +1,154 @@
+name: K3SHER Android Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Baixar o projeto
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Instalar NDK e CMake
+        run: |
+          sdkmanager "ndk;27.1.12297006" "cmake;3.22.1"
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Gerar projeto Android
+        run: npx expo prebuild --platform android --no-install --clean
+
+      - name: Preservar namespace, pacotes Kotlin e assinatura
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+
+          const gradlePath = 'android/app/build.gradle';
+          let gradle = fs.readFileSync(gradlePath, 'utf8');
+
+          const namespacePattern = /namespace\s+(['"])[^'"]+\1/;
+
+          if (!namespacePattern.test(gradle)) {
+            throw new Error('Namespace não encontrado');
+          }
+
+          gradle = gradle.replace(
+            namespacePattern,
+            "namespace 'com.k3sher.app'"
+          );
+
+          const signingConfigsPattern = /signingConfigs\s*\{/;
+
+          if (!signingConfigsPattern.test(gradle)) {
+            throw new Error('Bloco signingConfigs não encontrado');
+          }
+
+          const releaseSigningConfig = [
+            '        release {',
+            "            storeFile file(System.getenv('MYAPP_UPLOAD_STORE_FILE') ?: 'upload-keystore.jks')",
+            '            storePassword System.getenv("MYAPP_UPLOAD_STORE_PASSWORD")',
+            '            keyAlias System.getenv("MYAPP_UPLOAD_KEY_ALIAS")',
+            '            keyPassword System.getenv("MYAPP_UPLOAD_KEY_PASSWORD")',
+            '        }'
+          ].join('\n');
+
+          gradle = gradle.replace(
+            signingConfigsPattern,
+            match => `${match}\n${releaseSigningConfig}`
+          );
+
+          const releaseBuildPattern =
+            /(buildTypes\s*\{[\s\S]*?\brelease\s*\{[\s\S]*?\bsigningConfig\s+)signingConfigs\.debug/;
+
+          if (!releaseBuildPattern.test(gradle)) {
+            throw new Error('Assinatura de release não encontrada');
+          }
+
+          gradle = gradle.replace(
+            releaseBuildPattern,
+            '$1signingConfigs.release'
+          );
+
+          fs.writeFileSync(gradlePath, gradle);
+
+          const files = [
+            'android/app/src/main/java/br/com/k3sher/app/MainActivity.kt',
+            'android/app/src/main/java/br/com/k3sher/app/MainApplication.kt'
+          ];
+
+          for (const file of files) {
+            if (!fs.existsSync(file)) {
+              throw new Error(`Arquivo Kotlin não encontrado: ${file}`);
+            }
+
+            let content = fs.readFileSync(file, 'utf8');
+
+            if (!content.includes('package br.com.k3sher.app')) {
+              throw new Error(`Pacote Kotlin inesperado em ${file}`);
+            }
+
+            content = content.replace(
+              'package br.com.k3sher.app',
+              'package com.k3sher.app'
+            );
+
+            fs.writeFileSync(file, content);
+          }
+
+          console.log('Configuração Android concluída.');
+          NODE
+
+      - name: Preparar chave de assinatura
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "Secret ANDROID_KEYSTORE_BASE64 não configurado."
+            exit 1
+          fi
+
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          test -s android/app/upload-keystore.jks
+
+      - name: Compilar Android App Bundle
+        working-directory: android
+        env:
+          MYAPP_UPLOAD_STORE_FILE: upload-keystore.jks
+          MYAPP_UPLOAD_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          MYAPP_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew bundleRelease --no-daemon --max-workers=2
+
+      - name: Disponibilizar AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: k3sher-release-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 7

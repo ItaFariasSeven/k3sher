@@ -1,22 +1,17 @@
 
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, Alert, ActivityIndicator, } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, Alert, ActivityIndicator, Platform } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { createAudioPlayer } from 'expo-audio';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
-// import { savePickedAudio } from '../../services/alarmAudioStorage';
+import { savePickedAudio } from '../../services/alarmAudioStorage';
 
 const DEFAULT_SOUNDS = [
   {
     id: 'default',
     name: 'Som do sistema',
-    uri: null,
-  },
-  {
-    id: 'falar_com_deus',
-    name: 'Falar com Deus',
     uri: null,
   },
 ];
@@ -25,14 +20,18 @@ export default function AlarmSoundPickerScreen({ route, navigation }) {
   const { current } = route.params || {};
 
   const [sounds, setSounds] = useState(() => {
-    if (current?.id && !DEFAULT_SOUNDS.some(s => s.id === current.id)) {
+    if (
+      current?.id &&
+      current.id !== 'falar_com_deus' &&
+      !DEFAULT_SOUNDS.some((s) => s.id === current.id)
+    ) {
       return [...DEFAULT_SOUNDS, current];
     }
 
     return DEFAULT_SOUNDS;
   });
 
-  const [selected, setSelected] = useState(current?.id || 'default');
+  const [selected, setSelected] = useState(current?.id === 'falar_com_deus' ? 'default' : current?.id || 'default');
 
   const [playingId, setPlayingId] = useState(null);
 
@@ -131,44 +130,15 @@ export default function AlarmSoundPickerScreen({ route, navigation }) {
         asset.mimeType &&
         !asset.mimeType.startsWith('audio/')
       ) {
-        Alert.alert('Arquivo inválido', 'Selecione um arquivo de áudio.');
+        Alert.alert(
+          'Arquivo inválido',
+          'Selecione um arquivo de áudio.'
+        );
         return;
       }
 
+      // O serviço escolhe o armazenamento adequado para cada plataforma.
       const savedUri = await savePickedAudio(asset);
-
-      // No aplicativo Android/iOS, armazenamos permanentemente.
-      // Na Web, mantemos a URI temporária do navegador para prévia.
-      if (Platform.OS !== 'web') {
-        if (!AUDIO_DIRECTORY.exists) {
-          AUDIO_DIRECTORY.create({
-            idempotent: true,
-            intermediates: true,
-          });
-        }
-
-        const extension = asset.name.includes('.')
-          ? asset.name.split('.').pop().toLowerCase()
-          : 'mp3';
-
-        const safeName = asset.name
-          .replace(/\.[^/.]+$/, '')
-          .replace(/[^a-zA-Z0-9_-]/g, '_')
-          .slice(0, 40);
-
-        const fileName = `${Date.now()}_${safeName}.${extension}`;
-
-        const source = new File(asset.uri);
-
-        const destination = new File(
-          AUDIO_DIRECTORY,
-          fileName
-        );
-
-        await source.copy(destination);
-
-        savedUri = destination.uri;
-      }
 
       const newSound = {
         id: `custom_${Date.now()}`,
@@ -177,7 +147,7 @@ export default function AlarmSoundPickerScreen({ route, navigation }) {
         mimeType: asset.mimeType || 'audio/*',
       };
 
-      setSounds(previous => [...previous, newSound]);
+      setSounds((previous) => [...previous, newSound]);
 
       setSelected(newSound.id);
 
@@ -188,7 +158,7 @@ export default function AlarmSoundPickerScreen({ route, navigation }) {
 
       Alert.alert(
         'Erro',
-        'Não foi possível importar o arquivo de áudio.'
+        error.message || 'Não foi possível importar o arquivo de áudio.'
       );
 
     } finally {

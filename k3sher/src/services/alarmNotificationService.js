@@ -55,23 +55,32 @@ async function getChannelId(soundEnabled, vibrationEnabled) {
   }
 
   const channelId = [
-    'k3sher-alarm',
+    'k3sher-alarm-v2',
     soundEnabled ? 'sound' : 'silent',
     vibrationEnabled ? 'vibration' : 'no-vibration',
   ].join('-');
 
-  await Notifications.setNotificationChannelAsync(channelId, {
+  const channelConfig = {
     name: 'Alarmes de oração',
     importance: Notifications.AndroidImportance.MAX,
-
-    sound: soundEnabled ? 'default' : null,
 
     vibrationPattern: vibrationEnabled
       ? [0, 250, 150, 250]
       : [],
 
     lightColor: '#006FFD',
-  });
+  };
+
+  // Som desativado: canal silencioso.
+  // Som ativado: o sistema utiliza o som padrão.
+  if (!soundEnabled) {
+    channelConfig.sound = null;
+  }
+
+  await Notifications.setNotificationChannelAsync(
+    channelId,
+    channelConfig
+  );
 
   return channelId;
 }
@@ -183,7 +192,9 @@ export async function scheduleAlarmNotifications(alarm) {
         title: alarm.label || 'Hora de orar',
         body: 'Chega de dormir! Vamos orar?',
 
-        sound: soundEnabled ? 'default' : false,
+        ...(alarm.soundEnabled === false && {
+          sound: false,
+        }),
 
         data: {
           source: SOURCE,
@@ -244,7 +255,9 @@ export async function scheduleSnoozeNotification({
       title: label,
       body: `Hora de orar! Seu alarme foi adiado por ${minutes} minutos.`,
 
-      sound: soundEnabled ? 'default' : null,
+      ...(soundEnabled === false && {
+        sound: false,
+      }),
 
       data: {
         source: SOURCE,

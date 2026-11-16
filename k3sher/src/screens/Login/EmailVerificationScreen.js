@@ -1,67 +1,70 @@
-// Tela que recebe o código de 6 dígitos enviado por email e o valida no backend.
 
-import React, { useState, useEffect } from 'react';
-import { View, Image, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Alert, Image,} from 'react-native';
 
 import ScreenContainer from '../../components/ScreenContainer';
-import InputField from '../../components/InputField';
 import AppButton from '../../components/AppButton';
 import { Colors } from '../../constants/colors';
-import { sendVerificationCode, verifyCode } from '../../services/auth';
+
+import {verificarEmailAtual,reenviarVerificacaoEmail,} from '../../services/firebaseAuth';
+
+import {criarSessaoBackendFirebase,} from '../../services/auth';
 
 export default function EmailVerificationScreen({ route, navigation }) {
   const { emailOrPhone } = route.params || {};
-  const [code, setCode] = useState('');
+
   const [loading, setLoading] = useState(false);
-  const [resendTimer, setResendTimer] = useState(180);
-
-  useEffect(() => {
-    if (resendTimer > 0) {
-      const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [resendTimer]);
-
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  const [resending, setResending] = useState(false);
 
   const handleResend = async () => {
-    try {
-      await sendVerificationCode(emailOrPhone, 'register');
-      setResendTimer(180);
-      Alert.alert('Sucesso', 'Novo código enviado.');
-    } catch (error) {
-      const msg =
-        error.response?.data?.email?.[0] ||
-        error.response?.data?.detail ||
-        'Erro ao reenviar código.';
-      Alert.alert('Erro', msg);
-    }
-  };
+  try {
+    setResending(true);
 
-  const handleVerify = async () => {
-    if (code.length !== 6) {
-      Alert.alert('Erro', 'Digite o código de 6 dígitos.');
+    const resultado = await reenviarVerificacaoEmail();
+
+    Alert.alert(
+      'Confirmação',
+      resultado.jaVerificado
+        ? 'Seu e-mail já está confirmado.'
+        : 'Novo link enviado para sua caixa de entrada.'
+    );
+
+  } catch (error) {
+    Alert.alert('Erro', error.message);
+
+  } finally {
+    setResending(false);
+  }
+};
+
+const handleVerify = async () => {
+  try {
+    setLoading(true);
+
+    const resultado = await verificarEmailAtual();
+
+    if (!resultado.verificado) {
+      Alert.alert(
+        'Atenção',
+        'Você ainda não confirmou seu e-mail.'
+      );
       return;
     }
 
-    try {
-      setLoading(true);
-      await verifyCode(emailOrPhone, code, 'register');
-      navigation.navigate('RegisterComplete', { emailOrPhone });
-    } catch (error) {
-      const msg =
-        error.response?.data?.code?.[0] ||
-        error.response?.data?.detail ||
-        'Código inválido ou expirado.';
-      Alert.alert('Erro', msg);
-    } finally {
-      setLoading(false);
-    }
-  };
+    await criarSessaoBackendFirebase();
+
+    navigation.replace('NavBar');
+
+  } catch (error) {
+    Alert.alert(
+      'Erro',
+      error.response?.data?.detail || error.message
+    );
+
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <ScreenContainer scrollable>
@@ -73,38 +76,31 @@ export default function EmailVerificationScreen({ route, navigation }) {
 
       <View style={styles.header}>
         <Text style={styles.title}>Confirme seu e-mail</Text>
+
         <Text style={styles.description}>
-          Enviamos um código de 6 dígitos para{' '}
-          <Text style={styles.highlight}>{emailOrPhone || 'Hello@tyler.com'}</Text>
+          Enviamos um link de confirmação para:
+        </Text>
+
+        <Text style={styles.email}>
+          {emailOrPhone}
+        </Text>
+
+        <Text style={styles.description}>
+          Abra sua caixa de entrada, clique no link e depois volte ao aplicativo.
         </Text>
       </View>
 
-      <InputField
-        label="Insira o código de verificação"
-        placeholder="*****"
-        value={code}
-        onChangeText={setCode}
-        leftIcon="mail-outline"
-        keyboardType="numeric"
-        maxLength={6}
-        active
-      />
-
-      <TouchableOpacity
-        style={styles.resendRow}
-        onPress={handleResend}
-        disabled={resendTimer > 0}
-      >
-        <Text style={[styles.resendText, resendTimer > 0 && styles.resendDisabled]}>
-          {resendTimer > 0 ? `Reenviar em ${formatTime(resendTimer)}` : 'Reenviar código'}
-        </Text>
-      </TouchableOpacity>
-
       <AppButton
-        title={loading ? 'Verificando...' : 'Verificar e criar conta'}
+        title={loading ? 'Verificando...' : 'Já confirmei meu e-mail'}
         onPress={handleVerify}
       />
 
+      <View style={styles.resend}>
+        <AppButton
+          title={resending ? 'Enviando...' : 'Reenviar link'}
+          onPress={handleResend}
+        />
+      </View>
     </ScreenContainer>
   );
 }
@@ -112,39 +108,32 @@ export default function EmailVerificationScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   illustration: {
     width: '100%',
-    height: 320,
-    marginBottom: 16,
+    height: 260,
+    marginBottom: 20,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 28,
+    gap: 12,
   },
   title: {
     fontSize: 24,
     fontWeight: '600',
     color: Colors.text,
     textAlign: 'center',
-    marginBottom: 8,
   },
   description: {
     fontSize: 14,
     color: Colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 21,
   },
-  highlight: {
+  email: {
+    fontSize: 15,
+    fontWeight: '600',
     color: Colors.link,
   },
-  resendRow: {
-    alignSelf: 'flex-end',
-    marginTop: -8,
-    marginBottom: 16,
-  },
-  resendText: {
-    fontSize: 12,
-    color: Colors.link,
-  },
-  resendDisabled: {
-    color: Colors.textMuted,
+  resend: {
+    marginTop: 12,
   },
 });

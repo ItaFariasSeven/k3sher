@@ -1,91 +1,111 @@
+
 import api from './api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { auth } from './firebase';
+
+import {
+  entrarComEmail,
+  obterFirebaseIdToken,
+  sairFirebase,
+} from './firebaseAuth';
+
+const TOKEN_KEY = '@k3sher:token';
+const REFRESH_KEY = '@k3sher:refresh';
+
+// Troca a identidade Firebase pelos JWTs do Django.
+export const criarSessaoBackendFirebase = async () => {
+  try {
+    const firebaseUser = auth.currentUser;
+
+    if (!firebaseUser) {
+      throw new Error('Nenhum usuário Firebase autenticado.');
+    }
+
+    const idToken = await obterFirebaseIdToken();
+
+    const response = await api.post('/auth/firebase/session/', {
+      idToken,
+    });
+
+    const { access, refresh, user } = response.data;
+    console.log('========== IDENTIDADE DA SESSÃO ==========');
+    console.log('Firebase UID:', auth.currentUser?.uid);
+    console.log('Firebase Email:', auth.currentUser?.email);
+    console.log('Django User ID:', user?.id);
+    console.log('Django Email:', user?.email);
+    console.log('==========================================');
+
+    if (!access || !refresh || !user?.id || !user?.email) {
+      throw new Error(
+        'O servidor não retornou os dados completos da sessão.'
+      );
+    }
+
+    const emailFirebase = firebaseUser.email?.trim().toLowerCase();
+    const emailBackend = user.email.trim().toLowerCase();
+
+    if (emailFirebase !== emailBackend) {
+      throw new Error(
+        'A conta retornada pelo servidor não corresponde à conta Firebase autenticada.'
+      );
+    }
+
+    await AsyncStorage.setItem(TOKEN_KEY, access);
+    await AsyncStorage.setItem(REFRESH_KEY, refresh);
+
+    return response.data;
+
+  } catch (error) {
+    console.log('STATUS:', error.response?.status);
+    console.log('RESPOSTA:', JSON.stringify(error.response?.data));
+    console.log('ERRO:', error.message);
+
+    throw error;
+  }
+};
+
+// Login por e-mail e senha através do Firebase.
 export const login = async (email, password) => {
-  const response = await api.post('/auth/login/', {
-    email,
-    password,
-  });
+  const resultado = await entrarComEmail(email, password);
 
-  const { access, refresh } = response.data;
+  if (!resultado.emailVerificado) {
+    return { emailVerificado: false };
+  }
 
-  // Salva os tokens para as próximas requisições.
-  await AsyncStorage.setItem('@k3sher:token', access);
-  await AsyncStorage.setItem('@k3sher:refresh', refresh);
+  // Remove os JWTs da sessão anterior.
+  await AsyncStorage.multiRemove([TOKEN_KEY, REFRESH_KEY]);
 
-  return response.data;
+  const sessao = await criarSessaoBackendFirebase();
+
+  return {
+    ...sessao,
+    emailVerificado: true,
+  };
 };
 
-export const register = async (data) => {
-  const response = await api.post('/auth/register/', data);
-  return response.data;
-};
-
-export const sendVerificationCode = async (email, purpose = 'register') => {
-  const response = await api.post('/auth/send-code/', {
-    email,
-    purpose,
-  });
-  return response.data;
-};
-
-export const verifyCode = async (email, code, purpose = 'register') => {
-  const response = await api.post('/auth/verify-code/', {
-    email,
-    code,
-    purpose,
-  });
-  return response.data;
-};
-
-export const resetPassword = async (
-  email,
-  code,
-  newPassword,
-  confirmPassword
-) => {
-  const response = await api.post('/auth/reset-password/', {
-    email,
-    code,
-    new_password: newPassword,
-    confirm_password: confirmPassword,
-  });
-
-  return response.data;
-};
-
+// Encerra as duas sessões.
 export const logout = async () => {
-  await AsyncStorage.removeItem('@k3sher:token');
-  await AsyncStorage.removeItem('@k3sher:refresh');
+  try {
+    await sairFirebase();
+  } finally {
+    await AsyncStorage.multiRemove([TOKEN_KEY, REFRESH_KEY]);
+  }
 };
 
+// Consulta perfil no Django.
 export const getProfile = async () => {
   const response = await api.get('/auth/profile/');
   return response.data;
 };
 
-// Precisamos usar FormData porque estamos enviando arquivo de imagem!
+// Atualização de perfil.
 export const updateProfile = async (formData) => {
   const response = await api.patch('/auth/profile/', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
   });
-  return response.data;
-};
-
-// Nova função para o Login Social (Google)
-export const googleLogin = async (idToken) => {
-  // Envia o idToken nativo do Google para o seu backend Django validar
-  const response = await api.post('/auth/google/', {
-    token: idToken
-  });
-
-  const { access, refresh } = response.data;
-
-  // Se o backend confirmar, salva os tokens no app exatamente como no login padrão
-  if (access) await AsyncStorage.setItem('@k3sher:token', access);
-  if (refresh) await AsyncStorage.setItem('@k3sher:refresh', refresh);
 
   return response.data;
 };

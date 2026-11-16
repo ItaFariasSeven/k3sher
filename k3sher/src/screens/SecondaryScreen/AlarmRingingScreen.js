@@ -1,20 +1,11 @@
 
 import React, { useEffect, useState } from 'react';
 
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  BackHandler,
-  Alert,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, BackHandler, Alert,} from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
-import {
-  SafeAreaView,
-} from 'react-native-safe-area-context';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 import { Colors } from '../../constants/colors';
 

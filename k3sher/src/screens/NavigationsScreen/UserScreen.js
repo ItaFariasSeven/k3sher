@@ -3,22 +3,22 @@ import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ScrollView,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { getProfile, updateProfile } from '../../services/auth';
 import { Colors } from '../../constants/colors'; // Caso use arquivo de cores. Se não, os estilos abaixo têm as cores fixas.
+import { getProfile, updateProfile, logout } from '../../services/auth';
 
 // Habilita a animação nativa (LayoutAnimation) no Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-export default function UserScreen() {
+export default function UserScreen({ navigation }) {
   const [expanded, setExpanded] = useState(false);
   const [imageUri, setImageUri] = useState(null);
 
   // Estados do formulário
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('mateusfarias134@gmail.com');
+  const [email, setEmail] = useState('');
   const [bio, setBio] = useState('');
   const [password, setPassword] = useState('');
 
@@ -79,17 +79,34 @@ export default function UserScreen() {
   };
 
   const handleLogout = () => {
-    Alert.alert('Sair da conta', 'Tem certeza que deseja desconectar?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { 
-        text: 'Sair', 
-        style: 'destructive', 
-        onPress: async () => {
-          await logout();
-          navigation.replace('Login');
-        }
-      }
-    ]);
+    Alert.alert(
+      'Sair da conta',
+      'Tem certeza que deseja desconectar?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Sair',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+            } catch (error) {
+              console.error('Erro ao encerrar sessão:', error);
+              Alert.alert('Erro', 'Não foi possível encerrar a sessão.');
+              return;
+            }
+
+            navigation.getParent()?.reset({
+              index: 0,
+              routes: [{ name: 'Login' }],
+            }) ?? navigation.reset({
+              index: 0,
+              routes: [{ name: 'Login' }],
+            });
+          },
+        },
+      ]
+    );
   };
 
   // Função para lidar com a abertura/fechamento com transição

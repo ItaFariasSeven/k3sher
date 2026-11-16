@@ -147,8 +147,7 @@ export default function AddPrayerRequestScreen({ navigation }) {
   }
 
   async function schedulePrayerNotification(requestId, personName) {
-    if (Platform.OS === 'web') return;
-    if (!notifyEnabled) return;
+    if (Platform.OS === 'web' || !notifyEnabled) return;
 
     const granted = await ensureNotificationPermission();
     if (!granted) return;
@@ -162,9 +161,9 @@ export default function AddPrayerRequestScreen({ navigation }) {
         data: { prayerId: requestId },
       },
       trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DAILY,
         hour: h,
         minute,
-        repeats: true,
       },
     });
   }
@@ -184,6 +183,7 @@ export default function AddPrayerRequestScreen({ navigation }) {
       setLoading(true);
 
       const prayerTime = formatBackendTime();
+
       const payload = {
         title: name.trim(),
         description: description.trim(),
@@ -193,20 +193,45 @@ export default function AddPrayerRequestScreen({ navigation }) {
 
       console.log('PAYLOAD ENVIADO:', payload);
 
+      // 1. Salva o pedido no backend
       const prayer = await createPrayerRequest(payload);
 
       console.log('RESPOSTA DO BACKEND:', prayer);
 
-      await schedulePrayerNotification(prayer.id, name.trim());
+      // 2. Tenta programar a notificação separadamente
+      let notificationError = false;
 
-      Alert.alert('Sucesso', 'Pedido adicionado com sucesso!', [
-        { text: 'OK', onPress: () => navigation.navigate('Requests') },
-      ]);
+      try {
+        await schedulePrayerNotification(prayer.id, name.trim());
+      } catch (error) {
+        notificationError = true;
+        console.log('ERRO AO PROGRAMAR NOTIFICAÇÃO:', error);
+      }
+
+      // 3. O pedido foi salvo, mesmo se a notificação falhar
+      Alert.alert(
+        'Sucesso',
+        notificationError
+          ? 'Pedido adicionado, mas não foi possível programar a notificação.'
+          : 'Pedido adicionado com sucesso!',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              navigation.navigate('NavBar', {
+                screen: 'Requests',
+              });
+            },
+          },
+        ]
+      );
+
     } catch (error) {
       console.log('ERRO AO SALVAR PEDIDO:', error);
       console.log('RESPONSE:', error.response?.data);
 
       const data = error.response?.data || {};
+
       const msg =
         data.detail ||
         data.title?.[0] ||
@@ -217,6 +242,7 @@ export default function AddPrayerRequestScreen({ navigation }) {
         'Erro ao salvar pedido.';
 
       Alert.alert('Erro', msg);
+
     } finally {
       setLoading(false);
     }

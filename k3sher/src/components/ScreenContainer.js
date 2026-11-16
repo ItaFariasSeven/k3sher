@@ -1,6 +1,7 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import { ScrollView, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { Colors } from '../constants/colors';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ScreenContainer({ children, scrollable = false, style }) {
   const content = (

@@ -2,13 +2,21 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import api from './api';
+import { auth } from './firebase';
 
-import {
-  scheduleAlarmNotifications,
-  cancelAlarmNotifications,
-} from './alarmNotificationService';
+import { scheduleAlarmNotifications, cancelAlarmNotifications,} from './alarmNotificationService';
 
-const ALARMS_KEY = '@k3sher_alarms';
+const getAlarmsKey = (uid) => `@k3sher_alarms_${uid}`;
+
+function getCurrentAlarmsKey() {
+  const uid = auth.currentUser?.uid;
+
+  if (!uid) {
+    throw new Error('Usuário não autenticado. Não é possível acessar os alarmes.');
+  }
+
+  return getAlarmsKey(uid);
+}
 
 const DEFAULT_SOUND = {
   id: 'default',
@@ -195,18 +203,22 @@ function buildBackendPayload(alarm) {
 
 async function getCachedAlarms() {
   try {
-    const json = await AsyncStorage.getItem(ALARMS_KEY);
+    const key = getCurrentAlarmsKey();
+    const json = await AsyncStorage.getItem(key);
 
     return json ? JSON.parse(json) : [];
+
   } catch (error) {
     console.error('[alarmService] Erro ao ler cache:', error);
-    return [];
+    throw error;
   }
 }
 
 async function saveToCache(alarms) {
+  const key = getCurrentAlarmsKey();
+
   await AsyncStorage.setItem(
-    ALARMS_KEY,
+    key,
     JSON.stringify(alarms)
   );
 }

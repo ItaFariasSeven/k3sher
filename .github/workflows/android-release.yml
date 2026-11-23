@@ -90,6 +90,24 @@ jobs:
       - name: Gerar projeto Android
         run: npx expo prebuild --platform android --no-install --clean
 
+      - name: Verificar recurso retrato opcional
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+
+          const manifestPath = 'android/app/src/main/AndroidManifest.xml';
+          const manifest = fs.readFileSync(manifestPath, 'utf8');
+
+          const feature = /<uses-feature\b(?=[^>]*android:name=["']android\.hardware\.screen\.portrait["'])(?=[^>]*android:required=["']false["'])[^>]*\/?>/;
+
+          if (!feature.test(manifest)) {
+            console.error('ERRO: Recurso portrait não está definido como opcional.');
+            process.exit(1);
+          }
+
+          console.log('OK: Recurso portrait está definido como opcional.');
+          NODE
+
       - name: Preservar namespace, pacotes Kotlin e assinatura
         run: |
           node <<'NODE'

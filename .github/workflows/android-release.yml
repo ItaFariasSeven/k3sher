@@ -200,12 +200,20 @@ jobs:
           MYAPP_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           chmod +x gradlew
-          ./gradlew bundleRelease --no-daemon --max-workers=2
+          ./gradlew bundleRelease assembleRelease --no-daemon --max-workers=2
 
       - name: Disponibilizar AAB
         uses: actions/upload-artifact@v4
         with:
           name: k3sher-release-aab
           path: k3sher/android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Disponibilizar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: k3sher-release-apk
+          path: k3sher/android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 7

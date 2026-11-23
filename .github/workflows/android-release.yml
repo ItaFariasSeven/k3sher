@@ -76,10 +76,16 @@ jobs:
           if [ "$missing" -ne 0 ]; then
             exit 1
           fi
-      - name: Diagnosticar Google Web Client ID
+      - name: Verificar Google Web Client ID
+        env:
+          EXPECTED_WEB_CLIENT_ID: 677886902469-klesd47ppvh86onsreq2h9lbj5csumn0.apps.googleusercontent.com
         run: |
-          echo "Google Web Client ID configurado:"
-          echo "$EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID"
+          if [ "$EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID" = "$EXPECTED_WEB_CLIENT_ID" ]; then
+            echo "RESULTADO: MATCH - Web Client IDs são iguais."
+          else
+            echo "::error::RESULTADO: MISMATCH - Web Client IDs são diferentes."
+            exit 1
+          fi
 
       - name: Gerar projeto Android
         run: npx expo prebuild --platform android --no-install --clean

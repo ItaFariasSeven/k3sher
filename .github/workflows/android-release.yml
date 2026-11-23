@@ -171,7 +171,16 @@ jobs:
 
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
           test -s android/app/upload-keystore.jks
-
+      - name: Diagnosticar certificado SHA-1
+        env:
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          keytool -list -v \
+            -keystore android/app/upload-keystore.jks \
+            -storepass "$STORE_PASSWORD" \
+            -alias "$KEY_ALIAS" \
+            | grep -E 'Alias name:|SHA1:|SHA256:'
       - name: Compilar Android App Bundle
         working-directory: k3sher/android
         env:

@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 function renderIcon(family, name, color) {
   if (family === 'MaterialCommunityIcons') {
@@ -11,8 +12,17 @@ function renderIcon(family, name, color) {
 }
 
 export default function BottomNavBar({ state, descriptors, navigation, tabs }) {
+  const insets = useSafeAreaInsets();
+  const bottomPadding = Math.max(insets.bottom, 10);
+
   return (
-    <View style={styles.container}>
+    <View style={[
+      styles.container, 
+      {
+        height: 56 + bottomPadding,
+        paddingBottom: bottomPadding,
+      },
+    ]}>
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const isFocused = state.index === index;
@@ -96,8 +106,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    height: 64,
-    paddingBottom: 8,
     paddingTop: 8,
     backgroundColor: Colors.white,
     borderTopWidth: 1,

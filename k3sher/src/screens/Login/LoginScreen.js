@@ -52,7 +52,7 @@ export default function LoginScreen({ navigation }) {
 };
   return (
     <ScreenContainer scrollable>
-      <HeaderLogo title="Seja bem vindo" />
+      <HeaderLogo title="Seja bem vindo" subtitle="MESHULASH"/>
 
       <View style={styles.form}>
         <InputField
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   },
   forgotPassword: { 
     alignSelf: 'flex-end', 
-    marginBottom: 24 
+    marginBottom: 14 
   },
   linkText: { 
     color: Colors.link, 
@@ -122,7 +122,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     justifyContent: 'center', 
     marginTop: 'auto', 
-    paddingTop: 24 
+    // paddingTop: 4,
+    paddingBottom: 25 
   },
   footerText: { 
     fontSize: 12, 

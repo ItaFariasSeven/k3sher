@@ -40,7 +40,7 @@ export default function SocialLogin() {
 };
   return (
     <View style={styles.container}>
-      <Text style={styles.orText}>Ou continue com</Text>
+      <Text style={styles.orText}>Ou continue com Google</Text>
 
       <View style={styles.buttonsContainer}>
         <TouchableOpacity
@@ -51,7 +51,7 @@ export default function SocialLogin() {
           {loading ? (
             <ActivityIndicator size="small" color="#DB4437" />
           ) : (
-            <Ionicons name="logo-google" size={24} color="#DB4437" />
+            <Ionicons name="logo-google" size={30} color="#DB4437" />
           )}
         </TouchableOpacity>
       </View>
@@ -62,26 +62,26 @@ export default function SocialLogin() {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 14,
   },
   orText: {
     fontSize: 14,
     color: Colors.textSecondary,
-    marginBottom: 16,
+    marginBottom: 10,
   },
   buttonsContainer: {
     flexDirection: 'row',
     gap: 16,
   },
   socialBtn: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderWidth: 1.8,
+    borderColor: '#BCC9DC',
     elevation: 2,
   },
 });

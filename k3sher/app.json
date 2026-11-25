@@ -2,9 +2,9 @@
   "expo": {
     "name": "k3sher",
     "slug": "k3sher",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "orientation": "portrait",
-    "icon": "./src/assets/logo/icon.png",
+    "icon": "./src/assets/logo/iconedecelular.png",
     "userInterfaceStyle": "light",
     "assetBundlePatterns": [
       "**/*"
@@ -18,9 +18,10 @@
         "foregroundImage": "./src/assets/logo/icon.png",
         "backgroundColor": "#ffffff"
       },
+      "edgeToEdgeEnabled": true,
       "package": "br.com.k3sher.app",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 9,
+      "versionCode": 10,
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",

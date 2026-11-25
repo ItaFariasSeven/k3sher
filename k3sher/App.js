@@ -16,6 +16,7 @@ import AddPrayerRequestScreen from './src/screens/SecondaryScreen/AddPrayerReque
 import AlarmConfigScreen from './src/screens/SecondaryScreen/AlarmConfigScreen';
 import AlarmRingingScreen from './src/screens/SecondaryScreen/AlarmRingingScreen';
 import AlarmSoundPickerScreen from './src/screens/SecondaryScreen/AlarmSoundPickerScreen';
+import * as ExpoInAppUpdates from 'expo-in-app-updates';
 
 const BACKEND_URL = 'https://k3sher.onrender.com'; 
 const socket = io(BACKEND_URL, {
@@ -66,6 +67,30 @@ function navigateToAlarmRinging(response, pendingResponseRef) {
 export default function App() {
 
   const pendingResponseRef = useRef(null);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android' || __DEV__) {
+      return;
+    }
+  
+    const verificarAtualizacao = async () => {
+      try {
+        const resultado = await ExpoInAppUpdates.checkForUpdate();
+      
+        console.log(
+          '[K3SHER] Resultado da verificação de atualização:',
+          resultado
+        );
+      } catch (error) {
+        console.warn(
+          '[K3SHER] Erro ao verificar atualização:',
+          error
+        );
+      }
+    };
+  
+    verificarAtualizacao();
+  }, []);
 
   useEffect(() => {
     if (Platform.OS === 'web') return;

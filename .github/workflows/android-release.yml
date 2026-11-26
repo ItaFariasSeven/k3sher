@@ -229,11 +229,3 @@ jobs:
           path: k3sher/android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 7
-
-      - name: Disponibilizar APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: k3sher-release-apk
-          path: k3sher/android/app/build/outputs/apk/release/app-release.apk
-          if-no-files-found: error
-          retention-days: 7
